@@ -2,7 +2,14 @@ import numpy as np
 import torch
 import pandas as pd
 from scipy import stats
-from src.settings import *
+import random
+from src.config import *
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
 
 def calc_energy(px, py, pz, masses):
@@ -143,7 +150,7 @@ def preprocess_urqmd(urqmd, max_size_t=80, max_size_c=250, return_cols=False):
     for col in ['psi1', 'psi2', 'mom_T', 'phi']:
         if col in urqmd_new.columns:
             urqmd_new.drop(columns=col, inplace=True)
-    cond_cols = [col for col in urqmd_new.columns if col not in list_cols]
+    cond_cols = ['B', 'v1', 'v2', 'v3']
     urqmd[cond_cols] = urqmd_new[cond_cols]
     for p in particles:
         for d in directions:

@@ -91,3 +91,4 @@ class EPiC_discriminator(nn.Module):
         x = F.leaky_relu(self.fc_g4(x) + x)
         x = self.fc_g5(x)
         return x
+    

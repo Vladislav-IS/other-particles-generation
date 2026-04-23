@@ -5,7 +5,7 @@ import numpy as np
 from scipy import stats
 from scipy.stats import wasserstein_distance
 from src.preprocessing import calc_pseudorapidity, calc_energy
-from src.settings import *
+from src.config import *
 
 
 def plot_losses(losses):

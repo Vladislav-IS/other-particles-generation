@@ -3,10 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from src.plots import plot_kde, plot_scatter, plot_v2
 from src.preprocessing import calc_energy
-from src.settings import *
+from src.config import *
 
 
-def generate_my(G, batch_size, n_points, cond, labels, device, threshold=0.5):
+def generate_transformer(G, batch_size, n_points, cond, labels, device, threshold=0.5):
     G.eval()
     cond = cond.to(device)
     labels = labels.to(device)

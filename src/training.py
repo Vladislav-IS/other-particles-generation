@@ -3,7 +3,7 @@ from torch import nn
 from torch.nn.utils import clip_grad_norm_
 import torch.nn.functional as F
 from src.plots import plot_kde, plot_scatter, plot_v2, plot_losses
-from src.settings import *
+from src.config import *
 
 
 def train_epoch_transformer(G,
