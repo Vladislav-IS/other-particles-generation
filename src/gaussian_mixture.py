@@ -3,7 +3,16 @@ from torch import nn
 
 
 class GaussianMixtureLatent(nn.Module):
+    '''
+    Learnable Gaussian mixture
+    '''
     def __init__(self, n_modes, dim, max_len=None):
+        '''
+        Parameters:
+        - n_modes - number of Gaussian modes;
+        - dim - latent dimensionality;
+        - max_len - maximum number of particles in generating sequences
+        '''
         super().__init__()
         self.mu = nn.Parameter(torch.randn(n_modes, dim) * 0.02)
         self.log_sigma = nn.Parameter(torch.randn(n_modes, dim) * 0.02)
@@ -15,6 +24,10 @@ class GaussianMixtureLatent(nn.Module):
         return torch.exp(torch.tanh(self.log_sigma))
 
     def forward(self, batch_size):
+        '''
+        Parameters:
+        - batch_size
+        '''
         sigma = self.get_sigma()
         comp_idx = torch.multinomial(self.weights, batch_size, replacement=True)
         if self.max_len is not None:

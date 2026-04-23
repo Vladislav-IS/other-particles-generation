@@ -1,12 +1,24 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from src.plots import plot_kde, plot_scatter, plot_v2
-from src.preprocessing import calc_energy
+from src.plots import plot_kde, plot_scatter, plot_v2, plot_pt
+from src.calculations import calc_energy
 from src.config import *
 
 
 def generate_transformer(G, batch_size, n_points, cond, labels, device, threshold=0.5):
+    '''
+    Function for particles sets generation via EPiC-styled transformer.
+    Parameters:
+    - G - tramsformer generator;
+    - batch_size, n_points - unused parameters;
+    - cond - external condition;
+    - labels - particles types;
+    - device - "cuda" or "cpu";
+    - threshold - threshold for generated mask.
+    Return:
+    - momenta tensor
+    '''
     G.eval()
     cond = cond.to(device)
     labels = labels.to(device)
@@ -18,6 +30,20 @@ def generate_transformer(G, batch_size, n_points, cond, labels, device, threshol
 
 
 def generate_epic(G, batch_size, n_points, cond, labels, device, zg_dim, zl_dim):
+    '''
+    Function for particles sets generation via vanilla EPiC-GAN.
+    Parameters:
+    - G - tramsformer generator;
+    - batch_size, 
+    - n_points - length of padded particles sequences;
+    - cond - external condition;
+    - labels - particles types;
+    - device - "cuda" or "cpu";
+    - zg_dim - global noise dimensionality;
+    - zl_dim - local noise dimensionality.
+    Return:
+    - momenta tensor
+    '''
     G.eval()
     cond = cond.to(device)
     labels = labels.to(device)
@@ -29,6 +55,13 @@ def generate_epic(G, batch_size, n_points, cond, labels, device, zg_dim, zl_dim)
 
 
 def count_pt(particles):
+    '''
+    Function for calculating transverse momentum modulus fraction by particle type.
+    Paeameters:
+    - particles - dictionary containing raw tensors of particles momenta.
+    Return:
+    - pt_parts - dictionary containing transverse momentum modulus fraction
+    '''
     pt_parts = {}
     sum_pt = 0
     for k, v in particles.items():
@@ -40,6 +73,13 @@ def count_pt(particles):
 
 
 def count_e(particles):
+    '''
+    Function for calculating energy fraction by particle type (using real tabular data).
+    Paeameters:
+    - particles - dictionary containing raw tensors of particles energies.
+    Return:
+    - e_parts - dictionary containing energy fraction
+    '''
     e_parts = {}
     sum_e = 0
     for k, v in particles.items():
@@ -51,6 +91,13 @@ def count_e(particles):
 
 
 def count_e_with_mass(particles):
+    '''
+    Function for calculating energy fraction by particle type (using momenta and particles masses).
+    Paeameters:
+    - particles - dictionary containing raw tensors of particles momenta.
+    Return:
+    - e_parts - dictionary containing energy fraction
+    '''
     e_parts = {}
     sum_e = 0
     for k, v in particles.items():
@@ -66,27 +113,23 @@ def count_e_with_mass(particles):
     return e_parts
 
 
-def plot_pt(real, fake, mode='pt'):
-    real_keys = [str(k) for k in real.keys()]
-    real_values = [np.mean(v) for v in real.values()]
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(real_keys, real_values, label='Real', alpha=0.5)
-    fake_keys = [str(k) for k in fake.keys()]
-    fake_values = [np.mean(v) for v in fake.values()]
-    bars = ax.bar(fake_keys, fake_values, label='Fake', alpha=0.5)
-    real_values = np.array(real_values)
-    fake_values = np.array(fake_values)
-    ratios = [f'{round(val, 2)}%' for val in (np.abs(real_values - fake_values) / real_values * 100)]
-    ax.bar_label(bars, labels=ratios, padding=3)
-    ax.set_xlabel('particle type')
-    ax.set_ylabel('value')
-    ax.set_title('Transverse momentum modulus fraction' if mode == 'pt' else 'Energy fraction')
-    ax.grid(axis='y', linestyle='--', alpha=0.7)
-    ax.legend()
-    plt.show()
-
-
-def get_dist_metrics(G, generate_func, n_points, test_mom, test_nucl, test_nucl_mask, test_event, test_cond, test_label, test_mask, **kwargs):
+def get_dist_metrics(G, generate_func, n_points, test_mom, test_nucl, test_nucl_mask, test_event, test_cond, test_label, test_mask, device, **kwargs):
+    '''
+    Function for plotting and calculating distribution metrics (KL divergence, Wasserstein distance).
+    Paeameters:
+    - G - generator model;
+    - generate_func - model-specific generation function;
+    - n_points - length of padded particles sequences;
+    - test_mom - tensors of thue "other" particles momenta (test subset);
+    - test_nucl, test_nucl_mask, test_event - unused parameters;
+    - test_cond - external condition (test subset);
+    - test_label - particles types (test subset);
+    - test_mask - padding mask (test subset);
+    - device - "cuda" or "cpu";
+    - kwargs - for model-specific generation function.
+    Return:
+    - metrics - dictionary containing metrics for all particles and the fastest partlice
+    '''
     metrics = {}
     for i in range(len(num_to_label)):
         metrics[num_to_label[i]] = {}
@@ -114,7 +157,23 @@ def get_dist_metrics(G, generate_func, n_points, test_mom, test_nucl, test_nucl_
     return metrics  
 
 
-def get_energy_metrics(G, generate_func, n_points, test_mom, test_nucl, test_nucl_mask, test_event, test_cond, test_label, test_mask, **kwargs):
+def get_energy_metrics(G, generate_func, n_points, test_mom, test_nucl, test_nucl_mask, test_event, test_cond, test_label, test_mask, device, **kwargs):
+    '''
+    Function for plotting energy metrics (transverse momentum modulus and energy fraction).
+    Paeameters:
+    - G - generator model;
+    - generate_func - model-specific generation function;
+    - n_points - length of padded particles sequences;
+    - test_mom - tensors of thue "other" particles momenta (test subset);
+    - test_nucl - nucleons momenta from test subset;
+    - test_nucl_mask - nucleons padding mask from test subset;
+    - test_event - tensor of event numbers from test subset;
+    - test_cond - external condition (test subset);
+    - test_label - particles types (test subset);
+    - test_mask - padding mask (test subset);
+    - device - "cuda" or "cpu";
+    - kwargs - for model-specific generation function.
+    '''
     all_real_pt = {}
     all_fake_pt = {}
     all_real_e = {}

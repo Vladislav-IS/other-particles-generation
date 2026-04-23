@@ -5,7 +5,16 @@ from torch.nn.utils import weight_norm
 
 
 class EPiC_layer(nn.Module):
+    '''
+    vanilla EPiC-GAN layer
+    '''
     def __init__(self, local_in_dim, hid_dim, latent_dim):
+        '''
+        Parameters:
+        - local_in_dim - local noise dimensionality;
+        - hid_dim - layer hidden dimensionality;
+        - latent_dim - global noise dimensionality
+        '''
         super(EPiC_layer, self).__init__()
         self.fc_global1 = weight_norm(nn.Linear(int(2*hid_dim)+latent_dim, hid_dim))
         self.fc_global2 = weight_norm(nn.Linear(hid_dim, latent_dim))
@@ -13,6 +22,11 @@ class EPiC_layer(nn.Module):
         self.fc_local2 = weight_norm(nn.Linear(hid_dim, hid_dim))
 
     def forward(self, x_global, x_local):
+        '''
+        Parameters:
+        - x_global - global features;
+        - x_local - local features
+        '''
         batch_size, n_points, latent_local = x_local.size()
         latent_global = x_global.size(1)
         x_pooled_mean = x_local.mean(1, keepdim=False)
@@ -28,7 +42,20 @@ class EPiC_layer(nn.Module):
 
 
 class EPiC_generator(nn.Module):
+    '''
+    vanilla EPiC-GAN generator
+    '''
     def __init__(self, latent, latent_local, hid_d, feats, equiv_layers_generator, extern_cond_d, num_labels):
+        '''
+        Parameters:
+        - latent - global noise dimensionality;
+        - latent_local - local noise dimensionality;
+        - hid_d - model hidden dimensionality;
+        - feats - output data dimensionality;
+        - equiv_layers_generator - number of generator layers;
+        - extern_cond_d - condition dimensionality;
+        - num_labels - number of particles types
+        '''
         super(EPiC_generator, self).__init__()
         self.equiv_layers = equiv_layers_generator
         self.local_0 = weight_norm(nn.Linear(latent_local, hid_d))
@@ -41,6 +68,13 @@ class EPiC_generator(nn.Module):
         self.emb = nn.Embedding(num_labels, num_labels)
 
     def forward(self, z_global, z_local, cond, label):
+        '''
+        Parameters: 
+        - z_global - global noise;
+        - z_local - local noise;
+        - cond - external condition;
+        - label - particles types
+        '''
         batch_size, _, _= z_local.size()
         latent_tensor = z_global.clone().reshape(batch_size, 1, -1)
         z_local = F.leaky_relu(self.local_0(z_local))
@@ -59,6 +93,15 @@ class EPiC_generator(nn.Module):
 
 class EPiC_discriminator(nn.Module):
     def __init__(self, latent, hid_d, feats, equiv_layers_discriminator, extern_cond_d, num_labels):
+        '''
+        Parameters:
+        - latent - global noise dimensionality;
+        - hid_d - model hidden dimensionality;
+        - feats - input data dimensionality;
+        - equiv_layers_discriminator - number of discriminator layers;
+        - extern_cond_d - condition dimensionality;
+        - num_labels - number of particles types
+        '''
         super(EPiC_discriminator, self).__init__()
         self.equiv_layers = equiv_layers_discriminator
         self.fc_l1 = weight_norm(nn.Linear(feats, hid_d))
@@ -74,6 +117,12 @@ class EPiC_discriminator(nn.Module):
         self.emb = nn.Embedding(num_labels, num_labels)
 
     def forward(self, x, cond, label):
+        '''
+        Parameters:
+        - x - particles momenta;
+        - cond - external condition;
+        - label - particles types
+        '''
         label_emb = self.emb(label)
         x_local = F.leaky_relu(self.fc_l1(x))
         x_local = F.leaky_relu(self.fc_l2(x_local) + x_local)

@@ -1,14 +1,18 @@
 import matplotlib.pyplot as plt
-from scipy.integrate import simpson
 import torch
 import numpy as np
 from scipy import stats
 from scipy.stats import wasserstein_distance
-from src.preprocessing import calc_pseudorapidity, calc_energy
+from src.calculations import calc_pseudorapidity, calc_energy, kl_divergence, w2_distance_1d, calc_vn_vs_pt, calc_pt_dist
 from src.config import *
 
 
 def plot_losses(losses):
+    '''
+    Function for losses plotting.
+    Parameters:
+    - losses - dictionary "losses type - epoch losses list"
+    '''
     plt.clf()
     len_ = len(losses.keys())
     fig, ax = plt.subplots(nrows=1, ncols=len_, figsize=(3 * len_, 3))
@@ -19,29 +23,23 @@ def plot_losses(losses):
     plt.show()
 
 
-def kl_divergence(real_kde, fake_kde, x, eps=1e-12):
-    p = real_kde.evaluate(x)
-    q = fake_kde.evaluate(x)
-    return simpson(p * np.log((p + eps) / (q + eps)), x)
-
-
-def w2_distance_1d(u_values, v_values):
-    u_sorted = np.sort(u_values)
-    v_sorted = np.sort(v_values)
-    if len(u_sorted) != len(v_sorted):
-        from scipy.interpolate import interp1d
-        q = np.linspace(0, 1, min(len(u_sorted), len(v_sorted)))
-        u_quant = np.quantile(u_sorted, q)
-        v_quant = np.quantile(v_sorted, q)
-        return np.sqrt(np.mean((u_quant - v_quant)**2))
-    else:
-        return np.sqrt(np.mean((u_sorted - v_sorted)**2))
-
-
 def plot_kde(real, fake, dim_names, part_type, num=None):
+    '''
+    Fucntion for plotting and calculating distribution metric with respect of .
+    Parameters:
+    - real - real data;
+    - fake - generated data;
+    - dim_names - list of momenta components names (x, y, z);
+    - part_type - particle type PDG;
+    - num - number of selected particle in sequences sorted by momenta absolute value (if None, all particles in sequences are considered).
+    Return:
+    - kl - KL divergence calculated using KDE of real and fake data;
+    - w1 - W1 distance calculated using KDE of real and fake data;
+    - w2 - W2 distance calculated using KDE of real and fake data.
+    '''
     fig, axes = plt.subplots(2, 5, figsize=(25, 7))
     if num is not None:
-        p_sq = real[..., 0]**2 + real[..., 1]**2 + real[..., 2]**2
+        p_sq = real[..., 0] ** 2 + real[..., 1] ** 2 + real[..., 2] ** 2
         sorted_indices = torch.argsort(p_sq, dim=1, descending=True)
         kth_idx = sorted_indices[:, num]
         batch_idx = np.arange(real.shape[0])
@@ -99,6 +97,12 @@ def plot_kde(real, fake, dim_names, part_type, num=None):
 
 
 def plot_scatter(real, fake):
+    '''
+    Function for plotting particles in 3D momenta components space.
+    Parameters:
+    - real - real data;
+    - fake - fake data.
+    '''
     fig = plt.figure(figsize=(12, 5))
     ax1 = fig.add_subplot(121, projection='3d')
     real_flat = real.reshape(-1, real.shape[-1])
@@ -115,71 +119,23 @@ def plot_scatter(real, fake):
     plt.show()
 
 
-def get_pt(data):
-    pt = torch.sqrt(data[...,0] ** 2 + data[...,1] ** 2)
-    return pt[data[..., 0] !=0 ].numpy()
-
-
-def compute_v2_vs_pt(data, pt_min, pt_max, eta_max, nbins, n):
-    pt_all, phi_all = [], []
-    for event in data:
-        if isinstance(event, torch.Tensor):
-            event = event.cpu().numpy()
-        px = event[..., 0]
-        py = event[..., 1]
-        pz = event[..., 2]
-        pt = np.sqrt(px ** 2 + py ** 2)
-        p_total = np.sqrt(pt ** 2 + pz ** 2)
-        eta = 0.5 * np.log((p_total + pz) / (p_total - pz + 1e-10))
-        mask = (pt > pt_min) & (pt < pt_max) & (np.abs(eta) < eta_max)
-        pt_sel = pt[mask]
-        phi_sel = np.arctan2(py[mask], px[mask])
-        pt_all.extend(pt_sel)
-        phi_all.extend(phi_sel)
-    pt_all = np.array(pt_all)
-    phi_all = np.array(phi_all)
-    bin_edges = np.linspace(pt_min, pt_max, nbins+1)
-    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-    v2_vals, v2_errs = [], []
-    for i in range(nbins):
-        mask_bin = (pt_all >= bin_edges[i]) & (pt_all < bin_edges[i + 1])
-        if np.sum(mask_bin) < 2:
-            v2_vals.append(np.nan)
-            v2_errs.append(np.nan)
-            continue
-        cos_nphi = np.cos(n * phi_all[mask_bin])
-        v2 = np.mean(cos_nphi)
-        err = np.std(cos_nphi) / np.sqrt(len(cos_nphi))
-        v2_vals.append(v2)
-        v2_errs.append(err)
-    return bin_centers, np.array(v2_vals), np.array(v2_errs)
-
-
-def get_masked_pt(p, pt_min=0.2, pt_max=None, eta_max=1.0):
-    px, py, pz = p[..., 0], p[..., 1], p[..., 2]
-    pt = torch.sqrt(px**2 + py**2)
-    p_total = torch.sqrt(pt**2 + pz**2)
-    eta = 0.5 * torch.log((p_total + pz) / (p_total - pz + 1e-10))
-    mask = (pt > pt_min) & (torch.abs(eta) < eta_max)
-    if pt_max is not None:
-        mask = mask & (pt < pt_max)
-    return mask, pt
-
-
-def compute_pt_dist(data, pt_min=0.0, pt_max=2.0, eta_max=10.0):
-    pt_list = []
-    for event in data:
-        mask, pt_event = get_masked_pt(event, pt_min, pt_max, eta_max)
-        pt_sel = pt_event[mask]
-        pt_list.append(pt_sel)
-    return torch.cat(pt_list) if pt_list else torch.tensor([], device=data.device if isinstance(data, torch.Tensor) else data[0].device)
-
-
 def plot_v2(real_data, fake_data, n=2, pt_min=0.0, pt_max=2.0, eta_max=10.0, nbins=10, pt_bins=50):
-    bin_centers, v2_real, err_real = compute_v2_vs_pt(real_data, pt_min, pt_max, eta_max, nbins, n)
-    _, v2_fake, err_fake = compute_v2_vs_pt(fake_data, pt_min, pt_max, eta_max, nbins, n)
-    pt_real_all = compute_pt_dist(real_data, pt_min=0, eta_max=eta_max)
-    pt_fake_all = compute_pt_dist(fake_data, pt_min=0, eta_max=eta_max)
+    '''
+    Function for plotting v_n(p_T) dependency and p_T distribution.
+    Parameters:
+    - real_data - real momenta;
+    - fake_data - fake momenta;
+    - n - cosine coefficient (flow number);
+    - pt_min - minimal value of transverse momentum;
+    - pt_max - maximum value of transverse momentum;
+    - eta_max - maximum value of pseudorapidity;
+    - nbins - number of points for v_n(p_T) dependency;
+    - pt_bins - number of bins for p_T distribution histogram
+    '''
+    bin_centers, v2_real, err_real = calc_vn_vs_pt(real_data, pt_min, pt_max, eta_max, nbins, n)
+    _, v2_fake, err_fake = calc_vn_vs_pt(fake_data, pt_min, pt_max, eta_max, nbins, n)
+    pt_real_all = calc_pt_dist(real_data, pt_min=0, eta_max=eta_max)
+    pt_fake_all = calc_pt_dist(fake_data, pt_min=0, eta_max=eta_max)
     fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(16,5))
     ax[0].errorbar(bin_centers, v2_real, yerr=err_real, fmt='o-', label='Real', capsize=3)
     ax[0].errorbar(bin_centers, v2_fake, yerr=err_fake, fmt='s-', label='Fake', capsize=3)
@@ -196,4 +152,31 @@ def plot_v2(real_data, fake_data, n=2, pt_min=0.0, pt_max=2.0, eta_max=10.0, nbi
     ax[1].legend()
     ax[1].grid(True, alpha=0.3)
     plt.tight_layout()
+    plt.show()
+
+
+def plot_pt(real, fake, mode='pt'):
+    '''
+    Function for plotting energy metrics (pT and energy fractions).
+    Parameters:
+    - real - real momenta;
+    - fake - fake momenta;
+    - mode - "pt" (transverse momenta) or "energy"
+    '''
+    real_keys = [str(k) for k in real.keys()]
+    real_values = [np.mean(v) for v in real.values()]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.bar(real_keys, real_values, label='Real', alpha=0.5)
+    fake_keys = [str(k) for k in fake.keys()]
+    fake_values = [np.mean(v) for v in fake.values()]
+    bars = ax.bar(fake_keys, fake_values, label='Fake', alpha=0.5)
+    real_values = np.array(real_values)
+    fake_values = np.array(fake_values)
+    ratios = [f'{round(val, 2)}%' for val in (np.abs(real_values - fake_values) / real_values * 100)]
+    ax.bar_label(bars, labels=ratios, padding=3)
+    ax.set_xlabel('particle type')
+    ax.set_ylabel('value')
+    ax.set_title('Transverse momentum modulus fraction' if mode == 'pt' else 'Energy fraction')
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
+    ax.legend()
     plt.show()

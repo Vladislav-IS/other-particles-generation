@@ -3,20 +3,170 @@ import torch
 import pandas as pd
 from scipy import stats
 import random
+from scipy.integrate import simpson
 from src.config import *
 
 
 def set_seed(seed):
+    '''
+    Function forrandom seed fixation.
+    Paramerers:
+    - seed
+    '''
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
 
 
+def calc_vn_vs_pt(data, pt_min, pt_max, eta_max, nbins, n):
+    '''
+    Function for calculating v_n(p_T) dependency.
+    Parameters:
+    - data - particles momenta;
+    - pt_min - minimal value of transverse momentum;
+    - pt_max - maximum value of transverse momentum;
+    - eta_max - maximum value of pseudorapidity;
+    - nbins - number of points for v_n(p_T) dependency;
+    - n - cosine coefficient (flow number).
+    Return:
+    - bin_centers - bins centers for error bar;
+    - vn mean values;
+    - vn error values.
+    '''
+    pt_all, phi_all = [], []
+    for event in data:
+        if isinstance(event, torch.Tensor):
+            event = event.cpu().numpy()
+        px = event[..., 0]
+        py = event[..., 1]
+        pz = event[..., 2]
+        pt = np.sqrt(px ** 2 + py ** 2)
+        p_total = np.sqrt(pt ** 2 + pz ** 2)
+        eta = 0.5 * np.log((p_total + pz) / (p_total - pz + 1e-10))
+        mask = (pt > pt_min) & (pt < pt_max) & (np.abs(eta) < eta_max)
+        pt_sel = pt[mask]
+        phi_sel = np.arctan2(py[mask], px[mask])
+        pt_all.extend(pt_sel)
+        phi_all.extend(phi_sel)
+    pt_all = np.array(pt_all)
+    phi_all = np.array(phi_all)
+    bin_edges = np.linspace(pt_min, pt_max, nbins + 1)
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+    vn_vals, vn_errs = [], []
+    for i in range(nbins):
+        mask_bin = (pt_all >= bin_edges[i]) & (pt_all < bin_edges[i + 1])
+        if np.sum(mask_bin) < 2:
+            vn_vals.append(np.nan)
+            vn_errs.append(np.nan)
+            continue
+        cos_nphi = np.cos(n * phi_all[mask_bin])
+        vn = np.mean(cos_nphi)
+        err = np.std(cos_nphi) / np.sqrt(len(cos_nphi))
+        vn_vals.append(vn)
+        vn_errs.append(err)
+    return bin_centers, np.array(vn_vals), np.array(vn_errs)
+
+
+def get_masked_pt(p, pt_min=0.2, pt_max=None, eta_max=1.0):
+    '''
+    Function for calculating transverse momenta with mask.
+    Parameters:
+    - p - particles momenta;
+    - pt_min - minimal value of transverse momentum;
+    - pt_max - maximum value of transverse momentum;
+    - eta_max - maximum value of pseudorapidity.
+    Return:
+    - mask - mask depending on pt_min, pt_max amd eta_max;
+    - pt - transverse momenta tensor.
+    '''
+    px, py, pz = p[..., 0], p[..., 1], p[..., 2]
+    pt = torch.sqrt(px ** 2 + py ** 2)
+    p_total = torch.sqrt(pt ** 2 + pz ** 2)
+    eta = 0.5 * torch.log((p_total + pz) / (p_total - pz + 1e-10))
+    mask = (pt > pt_min) & (torch.abs(eta) < eta_max)
+    if pt_max is not None:
+        mask = mask & (pt < pt_max)
+    return mask, pt
+
+
+def calc_pt_dist(data, pt_min=0.0, pt_max=2.0, eta_max=10.0):
+    '''
+    Function for calculating transverse momenta distribution.
+    Parameters:
+    - data - particles momenta;
+    - pt_min - minimal value of transverse momentum;
+    - pt_max - maximum value of transverse momentum;
+    - eta_max - maximum value of pseudorapidity.
+    Return:
+    - tensor of selected transverse momenta
+    '''
+    pt_list = []
+    for event in data:
+        mask, pt_event = get_masked_pt(event, pt_min, pt_max, eta_max)
+        pt_sel = pt_event[mask]
+        pt_list.append(pt_sel)
+    return torch.cat(pt_list) if pt_list else torch.tensor([], device=data.device if isinstance(data, torch.Tensor) else data[0].device)
+
+
+def kl_divergence(real_kde, fake_kde, x, eps=1e-12):
+    '''
+    Function for calculating KL divergence.
+    Parameters:
+    - real_kde - KDE of real data;
+    - fake_kde - KDE of generated data;
+    - x - points;
+    - eps - for numeric stability.
+    Return:
+    - KL divergence value
+    '''
+    p = real_kde.evaluate(x)
+    q = fake_kde.evaluate(x)
+    return simpson(p * np.log((p + eps) / (q + eps)), x)
+
+
+def w2_distance_1d(real, fake):
+    '''
+    Function for calculating W2 distance.
+    Parameters:
+    - real_values - real data;
+    - fake_values - generated data.
+    Return:
+    - W2 distance depending on data lengths
+    '''
+    real_sorted = np.sort(real)
+    fake_sorted = np.sort(fake)
+    if len(real_sorted) != len(fake_sorted):
+        q = np.linspace(0, 1, min(len(real_sorted), len(fake_sorted)))
+        real_quant = np.quantile(real_sorted, q)
+        fake_quant = np.quantile(fake_sorted, q)
+        return np.sqrt(np.mean((real_quant - fake_quant)**2))
+    else:
+        return np.sqrt(np.mean((real_sorted - fake_sorted)**2))
+
+
 def calc_energy(px, py, pz, masses):
-    return torch.sqrt(px**2 + py**2 + pz**2 + masses**2)
+    '''
+    Fucntion for calculating energies of particles (using momenta and masses).
+    Parameters:
+    - px - x momenta component;
+    - py - y momenta component;
+    - pz - z moment component;
+    - masses - tensor of particles masses.
+    Return:
+    - tensor of particles energies
+    '''
+    return torch.sqrt(px ** 2 + py ** 2 + pz ** 2 + masses ** 2)
 
 
-def calc_s_nn(row, mass_number = 131):
+def calc_m_inv(row, mass_number = 131):
+    '''
+    Function for calculating invariant mass per nucleon.
+    Parameters:
+    - row - row of ROOT data DataFrame;
+    - mass_number - mass number of colliding nuclei.
+    Return:
+    - invariant mass per nucleon
+    '''
     energy = np.sum(row['fParticles.fE'])
     px = np.sum(row['fParticles.fPx'])
     py = np.sum(row['fParticles.fPy'])
@@ -26,6 +176,15 @@ def calc_s_nn(row, mass_number = 131):
 
 
 def select_particles(row, target_col, mask_cols):
+    '''
+    Function for selecting particles using mask.
+    Parameters:
+    - row - row of ROOT data DataFrame;
+    - target_col - column of selecting data;
+    - mask_cols - columns for mask.
+    Return:
+    - selected values
+    '''
     feature_arr = np.array(row[target_col])
     mask_arr = np.zeros_like(feature_arr)
     for col in mask_cols:
@@ -34,15 +193,44 @@ def select_particles(row, target_col, mask_cols):
 
 
 def calc_pseudorapidity(px=None, py=None, pz=None, eps=1e-5):
+    '''
+    Fucntion for calculating pseudorapidity.
+    Parameters:
+    - px - momenta x component;
+    - py - momenta y component;
+    - pz - momenta z component;
+    - eps - for numeric stability.
+    Return:
+    - pseudorapidity array
+    '''
     norm = np.sqrt(px ** 2 + py ** 2 + pz ** 2)
     return 0.5 * np.log(eps + (norm + pz) / (eps + norm - pz))
 
 
 def calc_pT(px, py):
+    '''
+    Fucntion for calculating transverse momenta.
+    Parameters:
+    - px - momenta x component;
+    - py - momenta y component.
+    Return:
+    - transverse momenta array 
+    '''
     return np.sqrt(px ** 2 + py ** 2)
 
 
 def calc_flows(px, py, weights=None):
+    '''
+    Function for calculating v1, v2, v3 flows.
+    Parameters:
+    - px - momenta x component;
+    - py - momenta y component;
+    - weights - for vn correction.
+    Return:
+    - v1 flow;
+    - v2 flow;
+    -v3 flow
+    '''
     phi = np.arctan2(py, px)
     n = len(phi)
     w = np.ones(n) if weights is None else weights
@@ -54,6 +242,17 @@ def calc_flows(px, py, weights=None):
 
 
 def get_nucleons_by_type(px, py, pz, part_type='spectators', threshold=2.):
+    '''
+    Function for creating spectators or participants mask (using pseudorapidity).
+    Parameters:
+    - px - momenta x component;
+    - py - momenta y component;
+    - pz - momenta z component;
+    - part_type - spectators or participants;
+    - threshold - for separating spectators and participants.
+    Return:
+    - nucleons mask
+    '''
     eta = calc_pseudorapidity(px, py, pz)
     if part_type == 'spectators':
         return eta > threshold
@@ -62,6 +261,15 @@ def get_nucleons_by_type(px, py, pz, part_type='spectators', threshold=2.):
 
 
 def get_part_spec(row, target_col, part_type='spectators'):
+    '''
+    Function for selecting nucleons features depending on type.
+    Parameters:
+    - row - row of ROOT data DataFrame;
+    - target_col - target particles features;
+    - part_type - spectators or participants.
+    Return:
+    - selected features
+    '''
     nucleon_mask = np.array(row[N]) | np.array(row[P])
     nucleon_indices = np.where(nucleon_mask)[0]
     px = np.array(row['fParticles.fPx'])[nucleon_indices]
@@ -73,6 +281,18 @@ def get_part_spec(row, target_col, part_type='spectators'):
 
 
 def get_final_moms(mom_x, mom_y, mom_z, energy, max_size):
+    '''
+    Function for preprocessing particles momenta.
+    Parameters:
+    - mom_x - momenta x component;
+    - mom_y - momenta y component;
+    - mom_z - momenta z component;
+    - energy - partclies energies;
+    - max_size - maximum length of particles sequences.
+    Return:
+    - mom_merged - padded momenergy;
+    - mask - padding mask
+    '''
     if mom_x.shape[0] >= max_size:
         mask = np.ones(max_size, dtype=float)
         mom_x = mom_x[:max_size]
@@ -96,10 +316,23 @@ def get_final_moms(mom_x, mom_y, mom_z, energy, max_size):
 
 
 def preprocess_urqmd(urqmd, max_size_t=80, max_size_c=250, return_cols=False):
+    '''
+    Function for preprocessing ROOT dataset.
+    Parameters:
+    - urqmd - ROOT dataset;
+    - max_size_t - maximum length of target "other" particles sequences;
+    - max_size_c - maximum length of nucleons sequences;
+    - return cols - flag if condition columns names is needed.
+    Return:
+    - df - preprocessed DataFrame;
+    - cond_cols - external colition columns names;
+    - nucleons_cols - nucleons padded features columns names;
+    - nucleons_mask_cols - nucleons padding mask columns names
+    '''
     urqmd_new = pd.DataFrame()
     if 'fB' in urqmd.columns:
         urqmd_new['B'] = urqmd['fB']
-    urqmd_new['s_nn'] = urqmd.apply(calc_s_nn, axis=1)
+    urqmd_new['m_inv'] = urqmd.apply(calc_m_inv, axis=1)
     for p in particles:
         urqmd[p] = urqmd['fParticles.fPdg'].apply(lambda x: np.array(x) == p)
     for d in directions:

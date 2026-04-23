@@ -17,6 +17,23 @@ def train_epoch_transformer(G,
                             lambda_mask=1.0,
                             lambda_len=1.0,
                             clip_val=1.0):
+    '''
+    Function for EPiC transformer training (1 epoch).
+    Parameters:
+    - G - generator;
+    - D - discriminator;
+    - dataloader - train dataloader;
+    - optim_G - generator optimizer;
+    - optim_D - discriminator optimizer;
+    - device - "cuda" or "cpu";
+    - mode - "lsgan", other modes are unused;
+    - d_iters - number of iteration steps for discriminator;
+    - lambda_mask - weight of mask_loss;
+    - lambda_len - weight of length loss;
+    - clip_val - clipping value.
+    Return:
+    - losses dictionary
+    '''
     epoch_d_loss = 0.0
     epoch_g_loss = 0.0
     epoch_mask_loss = 0.0
@@ -71,6 +88,23 @@ def train_epoch_transformer(G,
 
 def train_epoch_epic(G, D, dataloader, optim_G, optim_D, device,
                      mode='lsgan', d_iters=1, zg_dim=128, zl_dim=16, clip_val=1.0):
+    '''
+    Function for EPiC transformer training (1 epoch).
+    Parameters:
+    - G - generator;
+    - D - discriminator;
+    - dataloader - train dataloader;
+    - optim_G - generator optimizer;
+    - optim_D - discriminator optimizer;
+    - device - "cuda" or "cpu";
+    - mode - "lsgan", other modes are unused;
+    - d_iters - number of iteration steps for discriminator;
+    - zg_dim - global noise dimensionalty;
+    - zl_dim - local noise dimensionalty;
+    - clip_val - clipping value.
+    Return:
+    - losses dictionary
+    '''
     epoch_d_loss = 0.0
     epoch_g_loss = 0.0
     num_batches = 0
@@ -91,7 +125,7 @@ def train_epoch_epic(G, D, dataloader, optim_G, optim_D, device,
                 d_loss = 0.5 * (F.mse_loss(d_real, torch.ones_like(d_real)) +
                                 F.mse_loss(d_fake, torch.zeros_like(d_fake)))
             else:
-                raise NotImplementedError("Only LSGAN implemented for EPiC")
+                raise NotImplementedError
             d_loss.backward()
             clip_grad_norm_(D.parameters(), clip_val)
             optim_D.step()
@@ -118,6 +152,31 @@ def train_model(G, D, dataloader, optim_G, optim_D, device, mode, d_iters,
                 epochs, train_epoch_func, generate_func, test_mom, test_cond,
                 test_label, test_mask, num_classes, meson_count_max,
                 scheduler_g=None, scheduler_d=None, **kwargs):
+    '''
+    Unified function for training.
+    Parameters:
+    - G - generator;
+    - D - discriminator;
+    - dataloader - train dataloader;
+    - optim_G - generator optimizer;
+    - optim_D - discriminator optimizer;
+    - device - "cuda" or "cpu";
+    - d_iters - number of iteration steps for discriminator;
+    - epochs - number of training epochs;
+    - train_epoch_func - model-specific training function;
+    - generate_fucn - model-specific generation function;
+    - test_mom - real momenta from test subset;
+    - test_cond - external condition from test subset;
+    - test_label - particle types from test subset;
+    - test_mask - padding masks from test subset;
+    - num_classes - number of particles types;
+    - meson_count_max - maximum length of padded particles sequences;
+    - scheduler_g - generator scheduler;
+    - scheduler_d - discriminator scheduler;
+    - kwargs - for model-specific training and generation function.
+    Return:
+    - losses dictionary
+    '''
     losses = {}
     for epoch in range(epochs):
         epoch_losses = train_epoch_func(G, D, dataloader, optim_G, optim_D, device, mode, d_iters, **kwargs)

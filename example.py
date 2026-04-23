@@ -4,34 +4,37 @@ from torch import optim
 from torch.utils.data import TensorDataset, DataLoader
 from argparse import ArgumentParser
 import os
+import warnings
 import uproot
 import numpy as np
 import pandas as pd
-from src.preprocessing import preprocess_urqmd
+from src.calculations import preprocess_urqmd
 from src.config import *
-from src.training import train_epoch_transformer, train_epoch_epic
+from src.training import train_epoch_transformer, train_model
 from src.inference import generate_transformer, get_dist_metrics, get_energy_metrics
 from src.transformer import EPiC_Transformer_Discriminator, EPiC_Transformer_Generator
 
 
 if __name__ == '__main__':
+    warnings.filterwarnings('ignore')
+
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     parser = ArgumentParser()
-    parser.add_argument("latent_dim", type=int, default=32)
-    parser.add_argument("latent_local_dim", type=int, default=32)
-    parser.add_argument("d_ff", type=int, default=64)
-    parser.add_argument("d_model", type=int, default=128)
-    parser.add_argument("n_heads", type=int, default=8)
-    parser.add_argument("num_layers_gen", type=int, default=5)
-    parser.add_argument("num_layers_disc", type=int, default=5)
-    parser.add_argument("lr", type=float, default=1e-4)
-    parser.add_argument("beta_1", type=float, default=0.5)
-    parser.add_argument("beta_2", type=float, default=0.999)
-    parser.add_argument("batch_size", type=int, default=128)
-    parser.add_argument("n_modes", type=int, default=2)
-    parser.add_argument("d_iters", type=int, default=1)
-    parser.add_argument("epochs", type=int, default=1)
+    parser.add_argument("--latent_dim", type=int, default=32)
+    parser.add_argument("--latent_local_dim", type=int, default=32)
+    parser.add_argument("--d_ff", type=int, default=64)
+    parser.add_argument("--d_model", type=int, default=128)
+    parser.add_argument("--n_heads", type=int, default=8)
+    parser.add_argument("--num_layers_gen", type=int, default=5)
+    parser.add_argument("--num_layers_disc", type=int, default=5)
+    parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument("--beta_1", type=float, default=0.5)
+    parser.add_argument("--beta_2", type=float, default=0.999)
+    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--n_modes", type=int, default=2)
+    parser.add_argument("--d_iters", type=int, default=1)
+    parser.add_argument("--epochs", type=int, default=1)
     args = parser.parse_args()
 
     if not os.path.exists('xexe_eos_1_bmn.root'):
@@ -95,6 +98,9 @@ if __name__ == '__main__':
                                         torch.tensor(train_mask, dtype=torch.float32))
     urqmd_train_dataloader = DataLoader(urqmd_train_dataset, batch_size=args.batch_size, shuffle=True)
     
+    num_classes = len(pions)
+    extern_cond_d = len(cond_cols)
+
     G = EPiC_Transformer_Generator(
         latent_global=args.latent_dim,
         latent_local=args.latent_local_dim,
@@ -119,8 +125,8 @@ if __name__ == '__main__':
         n_layers=args.num_layers_disc
     ).to(device)
 
-    opt_g = optim.Adam(G.parameters(), lr=lr, betas=(args.beta_1, args.beta_2))
-    opt_d = optim.Adam(D.parameters(), lr=lr, betas=(args.beta_1, args.beta_2))
+    opt_g = optim.Adam(G.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
+    opt_d = optim.Adam(D.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
 
     losses_my = train_model(
         G=G, D=D,
@@ -140,9 +146,9 @@ if __name__ == '__main__':
         meson_count_max=meson_count_max
     )
 
-    get_dist_metrics(G, generate_my, test_1_7_mom,
+    get_dist_metrics(G, generate_transformer, meson_count_max, test_1_7_mom,
                      test_1_7_nucl, test_1_7_nucl_mask, test_1_7_event,
-                     test_1_7_cond, test_1_7_label, test_1_7_mask)
-    get_energy_metrics(G, generate_my, test_1_7_mom,
+                     test_1_7_cond, test_1_7_label, test_1_7_mask, device)
+    get_energy_metrics(G, generate_transformer, meson_count_max, test_1_7_mom,
                        test_1_7_nucl, test_1_7_nucl_mask, test_1_7_event,
-                       test_1_7_cond, test_1_7_label, test_1_7_mask)
+                       test_1_7_cond, test_1_7_label, test_1_7_mask, device)
