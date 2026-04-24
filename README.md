@@ -22,6 +22,6 @@ other-particles-generation/
 │   ├── plots.py                        # Функции построения графиков
 │   ├── training.py                     # Функции обучения моделей разных типов
 │   └── transformer.py                  # Реализация трансформерной версии EPiC-GAN
-├── requirements.txt                    # Зависимости
+├── requirements.txt                    # Зависимости для src
 └── README.md                           # Описание проекта
 ```
