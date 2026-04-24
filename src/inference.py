@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
 from src.plots import plot_kde, plot_scatter, plot_v2, plot_pt
 from src.calculations import calc_energy
 from src.config import *
