@@ -15,10 +15,10 @@ from src.inference import generate_transformer, get_dist_metrics, get_energy_met
 from src.transformer import EPiC_Transformer_Discriminator, EPiC_Transformer_Generator
 
 
-if __name__ == '__main__':
-    warnings.filterwarnings('ignore')
+if __name__ == "__main__":
+    warnings.filterwarnings("ignore")
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     parser = ArgumentParser()
     parser.add_argument("--latent_dim", type=int, default=32)
@@ -37,10 +37,14 @@ if __name__ == '__main__':
     parser.add_argument("--epochs", type=int, default=1)
     args = parser.parse_args()
 
-    if not os.path.exists('xexe_eos_1_bmn.root'):
-        gdown.download('https://drive.google.com/uc?id=1EhDJ0DSe1AuHNRxUIbQV5r8AXo4TP8Kp')
-    if not os.path.exists('xexe_urqmd_5fm.root'):
-        gdown.download('https://drive.google.com/uc?id=1mBNT9X2qJRgRFHAhRIfv6kFSHQRnbZ4T')
+    if not os.path.exists("xexe_eos_1_bmn.root"):
+        gdown.download(
+            "https://drive.google.com/uc?id=1EhDJ0DSe1AuHNRxUIbQV5r8AXo4TP8Kp"
+        )
+    if not os.path.exists("xexe_urqmd_5fm.root"):
+        gdown.download(
+            "https://drive.google.com/uc?id=1mBNT9X2qJRgRFHAhRIfv6kFSHQRnbZ4T"
+        )
     urqmd_1_7 = uproot.open("xexe_eos_1_bmn.root:events").arrays(library="pd")
     urqmd_5 = uproot.open("xexe_urqmd_5fm.root:events").arrays(library="pd")
     n_events_by_b = int(len(urqmd_1_7) * 0.8)
@@ -50,19 +54,34 @@ if __name__ == '__main__':
     np.random.shuffle(ids_5)
     urqmd = pd.concat([urqmd_1_7.iloc[ids_1_7], urqmd_5.iloc[ids_5]], ignore_index=True)
     urqmd_1_7_test = urqmd_1_7.iloc[~np.isin(np.arange(len(urqmd_1_7)), ids_1_7)]
-    urqmd_5_test = urqmd_5.iloc[~np.isin(np.arange(len(urqmd_5)), ids_5)].head(len(urqmd_1_7) - n_events_by_b)
+    urqmd_5_test = urqmd_5.iloc[~np.isin(np.arange(len(urqmd_5)), ids_5)].head(
+        len(urqmd_1_7) - n_events_by_b
+    )
     COUNT = {}
     for code in particles:
-        selected_count = urqmd.apply(lambda x: (np.array(x['fParticles.fPdg']) == code).sum(), axis=1).values
+        selected_count = urqmd.apply(
+            lambda x: (np.array(x["fParticles.fPdg"]) == code).sum(), axis=1
+        ).values
         final_count = int(np.percentile(selected_count, 0.95))
         if final_count == 0:
             final_count = int(selected_count.max())
         COUNT[code] = final_count
-    meson_count_max = max({k: v for k, v in COUNT.items() if k not in nucleons}.values())
+    meson_count_max = max(
+        {k: v for k, v in COUNT.items() if k not in nucleons}.values()
+    )
     nucleon_count_max = max({k: v for k, v in COUNT.items() if k in nucleons}.values())
-    train, cond_cols, nucl_cols, nucl_mask_cols = preprocess_urqmd(urqmd, max_size_t=meson_count_max, max_size_c=nucleon_count_max, return_cols=True)
-    test_1_7 = preprocess_urqmd(urqmd_1_7_test, max_size_t=meson_count_max, max_size_c=nucleon_count_max)
-    test_5 = preprocess_urqmd(urqmd_5_test, max_size_t=meson_count_max, max_size_c=nucleon_count_max)
+    train, cond_cols, nucl_cols, nucl_mask_cols = preprocess_urqmd(
+        urqmd,
+        max_size_t=meson_count_max,
+        max_size_c=nucleon_count_max,
+        return_cols=True,
+    )
+    test_1_7 = preprocess_urqmd(
+        urqmd_1_7_test, max_size_t=meson_count_max, max_size_c=nucleon_count_max
+    )
+    test_5 = preprocess_urqmd(
+        urqmd_5_test, max_size_t=meson_count_max, max_size_c=nucleon_count_max
+    )
     means = {}
     stds = {}
     for col in cond_cols:
@@ -74,30 +93,34 @@ if __name__ == '__main__':
     train_cond = train[cond_cols].values.astype(float)
     train_nucl = list(train[nucl_cols].values)
     train_nucl_mask = list(train[nucl_mask_cols].values)
-    train_label = train['label'].values 
-    train_event = train['event'].values
-    train_mom = list(train['target_moms'].values)
-    train_mask = list(train['target_mask'].values)
+    train_label = train["label"].values
+    train_event = train["event"].values
+    train_mom = list(train["target_moms"].values)
+    train_mask = list(train["target_mask"].values)
     test_1_7_cond = test_1_7[cond_cols].values.astype(float)
     test_1_7_nucl = list(test_1_7[nucl_cols].values)
     test_1_7_nucl_mask = list(test_1_7[nucl_mask_cols].values)
-    test_1_7_label = test_1_7['label'].values
-    test_1_7_event = test_1_7['event'].values
-    test_1_7_mom = list(test_1_7['target_moms'].values)
-    test_1_7_mask = list(test_1_7['target_mask'].values)
+    test_1_7_label = test_1_7["label"].values
+    test_1_7_event = test_1_7["event"].values
+    test_1_7_mom = list(test_1_7["target_moms"].values)
+    test_1_7_mask = list(test_1_7["target_mask"].values)
     test_5_cond = test_5[cond_cols].values.astype(float)
     test_5_nucl = list(test_5[nucl_cols].values)
     test_5_nucl_mask = list(test_5[nucl_mask_cols].values)
-    test_5_label = test_5['label'].values
-    test_5_event = test_5['event'].values
-    test_5_mom = list(test_5['target_moms'].values)
-    test_5_mask = list(test_5['target_mask'].values)
-    urqmd_train_dataset = TensorDataset(torch.tensor(train_mom, dtype=torch.float32),
-                                        torch.tensor(train_cond, dtype=torch.float32),
-                                        torch.tensor(train_label),
-                                        torch.tensor(train_mask, dtype=torch.float32))
-    urqmd_train_dataloader = DataLoader(urqmd_train_dataset, batch_size=args.batch_size, shuffle=True)
-    
+    test_5_label = test_5["label"].values
+    test_5_event = test_5["event"].values
+    test_5_mom = list(test_5["target_moms"].values)
+    test_5_mask = list(test_5["target_mask"].values)
+    urqmd_train_dataset = TensorDataset(
+        torch.tensor(train_mom, dtype=torch.float32),
+        torch.tensor(train_cond, dtype=torch.float32),
+        torch.tensor(train_label),
+        torch.tensor(train_mask, dtype=torch.float32),
+    )
+    urqmd_train_dataloader = DataLoader(
+        urqmd_train_dataset, batch_size=args.batch_size, shuffle=True
+    )
+
     num_classes = len(pions)
     extern_cond_d = len(cond_cols)
 
@@ -112,7 +135,7 @@ if __name__ == '__main__':
         extern_cond_d=extern_cond_d,
         d_ff=args.d_ff,
         n_modes=args.n_modes,
-        n_layers=args.num_layers_gen
+        n_layers=args.num_layers_gen,
     ).to(device)
 
     D = EPiC_Transformer_Discriminator(
@@ -122,18 +145,20 @@ if __name__ == '__main__':
         n_heads=args.n_heads,
         d_ff=args.d_ff,
         extern_cond_d=extern_cond_d,
-        n_layers=args.num_layers_disc
+        n_layers=args.num_layers_disc,
     ).to(device)
 
     opt_g = optim.Adam(G.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
     opt_d = optim.Adam(D.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
 
     losses_my = train_model(
-        G=G, D=D,
+        G=G,
+        D=D,
         dataloader=urqmd_train_dataloader,
-        optim_G=opt_g, optim_D=opt_d,
+        optim_G=opt_g,
+        optim_D=opt_d,
         device=device,
-        mode='lsgan',
+        mode="lsgan",
         d_iters=args.d_iters,
         epochs=args.epochs,
         train_epoch_func=train_epoch_transformer,
@@ -143,12 +168,32 @@ if __name__ == '__main__':
         test_label=test_1_7_label,
         test_mask=test_1_7_mask,
         num_classes=num_classes,
-        meson_count_max=meson_count_max
+        meson_count_max=meson_count_max,
     )
 
-    get_dist_metrics(G, generate_transformer, meson_count_max, test_1_7_mom,
-                     test_1_7_nucl, test_1_7_nucl_mask, test_1_7_event,
-                     test_1_7_cond, test_1_7_label, test_1_7_mask, device)
-    get_energy_metrics(G, generate_transformer, meson_count_max, test_1_7_mom,
-                       test_1_7_nucl, test_1_7_nucl_mask, test_1_7_event,
-                       test_1_7_cond, test_1_7_label, test_1_7_mask, device)
+    get_dist_metrics(
+        G,
+        generate_transformer,
+        meson_count_max,
+        test_1_7_mom,
+        test_1_7_nucl,
+        test_1_7_nucl_mask,
+        test_1_7_event,
+        test_1_7_cond,
+        test_1_7_label,
+        test_1_7_mask,
+        device,
+    )
+    get_energy_metrics(
+        G,
+        generate_transformer,
+        meson_count_max,
+        test_1_7_mom,
+        test_1_7_nucl,
+        test_1_7_nucl_mask,
+        test_1_7_event,
+        test_1_7_cond,
+        test_1_7_label,
+        test_1_7_mask,
+        device,
+    )
