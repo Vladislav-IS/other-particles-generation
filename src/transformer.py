@@ -9,7 +9,7 @@ class TransformerBlock(nn.Module):
     EPiC transformer layer
     """
 
-    def __init__(self, d_model, n_heads, d_ff, neg_slope=0.2):
+    def __init__(self, d_model, n_heads, d_ff, neg_slope=0.2, use_weight_norm=False):
         """
         Parameters:
         - d_model - hidden dimensionality in multi-head attention;
@@ -21,9 +21,17 @@ class TransformerBlock(nn.Module):
         self.self_attn = nn.MultiheadAttention(d_model, n_heads, batch_first=True)
         self.cross_attn = nn.MultiheadAttention(d_model, n_heads, batch_first=True)
         self.ff = nn.Sequential(
-            weight_norm(nn.Linear(d_model, d_ff)),
+            (
+                weight_norm(nn.Linear(d_model, d_ff))
+                if use_weight_norm
+                else nn.Linear(d_model, d_ff)
+            ),
             nn.LeakyReLU(neg_slope),
-            weight_norm(nn.Linear(d_ff, d_model)),
+            (
+                weight_norm(nn.Linear(d_ff, d_model))
+                if use_weight_norm
+                else nn.Linear(d_ff, d_model)
+            ),
         )
 
     def forward(self, x_local, x_global, mask=None):
@@ -70,6 +78,7 @@ class EPiC_Transformer_Generator(nn.Module):
         n_layers=6,
         n_modes=3,
         neg_slope=0.2,
+        use_weight_norm=False,
     ):
         """
         Parameters:
@@ -92,22 +101,45 @@ class EPiC_Transformer_Generator(nn.Module):
         self.extern_cond_d = extern_cond_d
         self.emb = nn.Embedding(num_labels, d_model)
         if extern_cond_d is None:
-            self.cond_proj = weight_norm(nn.Linear(2 * d_model, d_model))
-        else:
-            self.cond_proj = weight_norm(
-                nn.Linear(extern_cond_d + 2 * d_model, d_model)
+            self.cond_proj = (
+                weight_norm(nn.Linear(2 * d_model, d_model))
+                if use_weight_norm
+                else nn.Linear(2 * d_model, d_model)
             )
-        self.global_proj = weight_norm(nn.Linear(latent_global, d_model))
-        self.local_proj = weight_norm(nn.Linear(latent_local, d_model))
+        else:
+            self.cond_proj = (
+                weight_norm(nn.Linear(extern_cond_d + 2 * d_model, d_model))
+                if use_weight_norm
+                else nn.Linear(extern_cond_d + 2 * d_model, d_model)
+            )
+        self.global_proj = (
+            weight_norm(nn.Linear(latent_global, d_model))
+            if use_weight_norm
+            else nn.Linear(latent_global, d_model)
+        )
+        self.local_proj = (
+            weight_norm(nn.Linear(latent_local, d_model))
+            if use_weight_norm
+            else nn.Linear(latent_local, d_model)
+        )
         self.blocks = nn.ModuleList(
             [
                 TransformerBlock(d_model, n_heads, d_ff, neg_slope)
                 for _ in range(n_layers)
             ]
         )
-        self.out_impulse = weight_norm(nn.Linear(d_model, feats))
-        self.out_mask = weight_norm(nn.Linear(d_model, 1))
-        # self.apply(self._init_weights)
+        self.out_impulse = (
+            weight_norm(nn.Linear(d_model, feats))
+            if use_weight_norm
+            else nn.Linear(d_model, feats)
+        )
+        self.out_mask = (
+            weight_norm(nn.Linear(d_model, 1))
+            if use_weight_norm
+            else nn.Linear(d_model, 1)
+        )
+        if not use_weight_norm:
+            self.apply(self._init_weights)
         self.local_sampler = GaussianMixtureLatent(n_modes, latent_local, max_len)
         self.global_sampler = GaussianMixtureLatent(n_modes, latent_global)
 
@@ -164,6 +196,7 @@ class EPiC_Transformer_Discriminator(nn.Module):
         d_ff=512,
         n_layers=6,
         neg_slope=0.2,
+        use_weight_norm=False,
     ):
         """
         Parameters:
@@ -178,7 +211,11 @@ class EPiC_Transformer_Discriminator(nn.Module):
         super().__init__()
         self.d_model = d_model
         self.extern_cond_d = extern_cond_d
-        self.input_proj = weight_norm(nn.Linear(feats, d_model))
+        self.input_proj = (
+            weight_norm(nn.Linear(feats, d_model))
+            if use_weight_norm
+            else nn.Linear(feats, d_model)
+        )
         self.emb = nn.Embedding(num_labels, d_model)
         self.blocks = nn.ModuleList(
             [
@@ -187,17 +224,32 @@ class EPiC_Transformer_Discriminator(nn.Module):
             ]
         )
         if extern_cond_d is not None:
-            self.cond_proj = weight_norm(
-                nn.Linear(extern_cond_d + 2 * d_model, d_model)
+            self.cond_proj = (
+                weight_norm(nn.Linear(extern_cond_d + 2 * d_model, d_model))
+                if use_weight_norm
+                else nn.Linear(extern_cond_d + 2 * d_model, d_model)
             )
         else:
-            self.cond_proj = weight_norm(nn.Linear(2 * d_model, d_model))
+            self.cond_proj = (
+                weight_norm(nn.Linear(2 * d_model, d_model))
+                if use_weight_norm
+                else nn.Linear(2 * d_model, d_model)
+            )
         self.global_proj = nn.Sequential(
-            weight_norm(nn.Linear(3 * d_model, d_model)),
+            (
+                weight_norm(nn.Linear(3 * d_model, d_model))
+                if use_weight_norm
+                else nn.Linear(3 * d_model, d_model)
+            ),
             nn.LeakyReLU(neg_slope),
-            weight_norm(nn.Linear(d_model, 1)),
+            (
+                weight_norm(nn.Linear(d_model, 1))
+                if use_weight_norm
+                else nn.Linear(d_model, 1)
+            ),
         )
-        # self.apply(self._init_weights)
+        if not use_weight_norm:
+            self.apply(self._init_weights)
 
     def _init_weights(self, module):
         """
