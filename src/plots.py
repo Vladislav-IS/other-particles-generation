@@ -144,10 +144,9 @@ def plot_scatter(real, fake):
     plt.show()
 
 
-def plot_v2(
+def plot_vn(
     real_data,
     fake_data,
-    n=2,
     pt_min=0.0,
     pt_max=2.0,
     eta_max=10.0,
@@ -166,45 +165,40 @@ def plot_v2(
     - nbins - number of points for v_n(p_T) dependency;
     - pt_bins - number of bins for p_T distribution histogram
     """
-    bin_centers, v2_real, err_real = calc_vn_vs_pt(
-        real_data, pt_min, pt_max, eta_max, nbins, n
-    )
-    _, v2_fake, err_fake = calc_vn_vs_pt(fake_data, pt_min, pt_max, eta_max, nbins, n)
     pt_real_all = calc_pt_dist(real_data, pt_min=0, eta_max=eta_max)
     pt_fake_all = calc_pt_dist(fake_data, pt_min=0, eta_max=eta_max)
-    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(16, 5))
-    ax[0].errorbar(
-        bin_centers, v2_real, yerr=err_real, fmt="o-", label="Real", capsize=3
-    )
-    ax[0].errorbar(
-        bin_centers, v2_fake, yerr=err_fake, fmt="s-", label="Fake", capsize=3
-    )
-    ax[0].set_xlabel("pT (GeV/c)")
-    ax[0].set_ylabel(f"v{n}")
-    ax[0].legend()
-    ax[0].grid(alpha=0.3)
-    ax[0].set_title(f"v{n}(pT) with eta < {eta_max}")
-    ax[1].hist(
+    fig, ax = plt.subplots(ncols=2, nrows=2, figsize=(16, 10))
+    for n in range(3):
+        row = n == 2
+        col = n % 2
+        real_p_interp, real_vn_interp = calc_vn_vs_pt(real_data, pt_min, pt_max, eta_max, nbins, n + 1)
+        fake_p_interp, fake_vn_interp = calc_vn_vs_pt(fake_data, pt_min, pt_max, eta_max, nbins, n + 1)
+        ax[row][col].plot(real_p_interp, real_vn_interp, label="Real")
+        ax[row][col].plot(fake_p_interp, fake_vn_interp, label="Fake")
+        ax[row][col].set_xlabel("pT (GeV/c)")
+        ax[row][col].set_ylabel(f"v{n + 1}")
+        ax[row][col].legend()
+        ax[row][col].grid(alpha=0.3)
+        ax[row][col].set_title(f"v{n + 1}(pT) with eta < {eta_max}")
+    ax[1][1].hist(
         pt_real_all.numpy(),
         bins=pt_bins,
         density=True,
         alpha=0.5,
-        label="Real",
-        color="blue",
+        label="Real"
     )
-    ax[1].hist(
+    ax[1][1].hist(
         pt_fake_all.numpy(),
         bins=pt_bins,
         density=True,
         alpha=0.5,
-        label="Fake",
-        color="red",
+        label="Fake"
     )
-    ax[1].set_xlabel("pT, GeV/c")
-    ax[1].set_ylabel("Normalized count")
-    ax[1].set_title("pT distribution")
-    ax[1].legend()
-    ax[1].grid(True, alpha=0.3)
+    ax[1][1].set_xlabel("pT, GeV/c")
+    ax[1][1].set_ylabel("Normalized count")
+    ax[1][1].set_title("pT distribution")
+    ax[1][1].legend()
+    ax[1][1].grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
 

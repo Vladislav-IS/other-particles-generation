@@ -45,6 +45,10 @@ if __name__ == "__main__":
         gdown.download(
             "https://drive.google.com/uc?id=1mBNT9X2qJRgRFHAhRIfv6kFSHQRnbZ4T"
         )
+    if not os.path.exists("smash_particles_xecs_2.87gev_hardSkyrme_defaultSpot_10943245_10.root"):
+        gdown.download(
+            "https://drive.google.com/uc?id=1BrMboOkpiwmMfJO0PStSxUmiLqWqYHi_"
+        )
     urqmd_1_7 = uproot.open("xexe_eos_1_bmn.root:events").arrays(library="pd")
     urqmd_5 = uproot.open("xexe_urqmd_5fm.root:events").arrays(library="pd")
     n_events_by_b = int(len(urqmd_1_7) * 0.8)

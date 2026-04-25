@@ -3,6 +3,7 @@ import torch
 import pandas as pd
 from scipy import stats
 import random
+from scipy.interpolate import interp1d
 from scipy.integrate import simpson
 from src.config import *
 
@@ -18,7 +19,7 @@ def set_seed(seed):
     torch.manual_seed(seed)
 
 
-def calc_vn_vs_pt(data, pt_min, pt_max, eta_max, nbins, n):
+def calc_vn_vs_pt(data, pt_min, pt_max, eta_max, nbins, n, n_interp=500):
     """
     Function for calculating v_n(p_T) dependency.
     Parameters:
@@ -44,27 +45,31 @@ def calc_vn_vs_pt(data, pt_min, pt_max, eta_max, nbins, n):
         p_total = np.sqrt(pt**2 + pz**2)
         eta = 0.5 * np.log((p_total + pz) / (p_total - pz + 1e-10))
         mask = (pt > pt_min) & (pt < pt_max) & (np.abs(eta) < eta_max)
-        pt_sel = pt[mask]
-        phi_sel = np.arctan2(py[mask], px[mask])
-        pt_all.extend(pt_sel)
-        phi_all.extend(phi_sel)
+        pt_all.extend(pt[mask])
+        phi_all.extend(np.arctan2(py[mask], px[mask]))
     pt_all = np.array(pt_all)
     phi_all = np.array(phi_all)
     bin_edges = np.linspace(pt_min, pt_max, nbins + 1)
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-    vn_vals, vn_errs = [], []
+    vn_vals = []
     for i in range(nbins):
         mask_bin = (pt_all >= bin_edges[i]) & (pt_all < bin_edges[i + 1])
-        if np.sum(mask_bin) < 2:
+        if np.sum(mask_bin) == 0:
             vn_vals.append(np.nan)
-            vn_errs.append(np.nan)
-            continue
-        cos_nphi = np.cos(n * phi_all[mask_bin])
-        vn = np.mean(cos_nphi)
-        err = np.std(cos_nphi) / np.sqrt(len(cos_nphi))
-        vn_vals.append(vn)
-        vn_errs.append(err)
-    return bin_centers, np.array(vn_vals), np.array(vn_errs)
+        else:
+            cos_nphi = np.cos(n * phi_all[mask_bin])
+            vn_vals.append(np.mean(cos_nphi))
+    vn_vals = np.array(vn_vals)
+    valid = ~np.isnan(vn_vals)
+    if np.sum(valid) < 2:
+        raise ValueError("Недостаточно бинов с частицами для интерполяции")
+    bin_centers_valid = bin_centers[valid]
+    vn_valid = vn_vals[valid]
+    f = interp1d(bin_centers_valid, vn_valid, kind='linear',
+                 fill_value='extrapolate', bounds_error=False)
+    p_interp = np.linspace(pt_min, pt_max, n_interp)
+    vn_interp = f(p_interp)
+    return p_interp, vn_interp
 
 
 def get_masked_pt(p, pt_min=0.2, pt_max=None, eta_max=1.0):

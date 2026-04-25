@@ -147,7 +147,7 @@ class EPiC_Transformer_Generator(nn.Module):
         """
         Unused.
         Parameters:
-        - module - networ module
+        - module - network module
         """
         if isinstance(module, nn.Linear):
             nn.init.xavier_uniform_(module.weight)
@@ -255,7 +255,7 @@ class EPiC_Transformer_Discriminator(nn.Module):
         """
         Unused.
         Parameters:
-        - module - networ module
+        - module - network module
         """
         if isinstance(module, nn.Linear):
             nn.init.xavier_uniform_(module.weight)
