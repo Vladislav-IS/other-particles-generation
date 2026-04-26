@@ -425,24 +425,26 @@ def train_and_test(
         if use_shadow:
             G_shadow.load_state_dict(torch.load('best_g_shadow.pt'))
         gen = G_shadow if use_shadow else G
+        gen.eval()
         plt.clf()
-        for b in test_mom_obj.keys():
-            final_metrics[metrics_mode_name][seed][b] = get_dist_metrics(
-                G,
-                generate_func,
-                test_mom_obj[b],
-                test_cond_obj[b],
-                test_label_obj[b],
-                test_mask_obj[b],
-                **kwargs
-            )
-            get_energy_metrics(G, 
-                               generate_func, 
-                               test_mom_obj[b],
-                               test_nucl_obj[b], 
-                               test_nucl_mask_obj[b], 
-                               test_event_obj[b],
-                               test_cond_obj[b], 
-                               test_label_obj[b], 
-                               test_mask_obj[b])
+        with torch.no_grad():
+            for b in test_mom_obj.keys():
+                final_metrics[metrics_mode_name][seed][b] = get_dist_metrics(
+                    gen,
+                    generate_func,
+                    test_mom_obj[b],
+                    test_cond_obj[b],
+                    test_label_obj[b],
+                    test_mask_obj[b],
+                    **kwargs
+                )
+                get_energy_metrics(gen, 
+                                   generate_func, 
+                                   test_mom_obj[b],
+                                   test_nucl_obj[b], 
+                                   test_nucl_mask_obj[b], 
+                                   test_event_obj[b],
+                                   test_cond_obj[b], 
+                                   test_label_obj[b], 
+                                   test_mask_obj[b])
     return G, G_shadow, D
