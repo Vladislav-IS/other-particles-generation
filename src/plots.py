@@ -169,7 +169,7 @@ def plot_vn(
     pt_fake_all = calc_pt_dist(fake_data, pt_min=0, eta_max=eta_max)
     fig, ax = plt.subplots(ncols=2, nrows=2, figsize=(16, 10))
     for n in range(3):
-        row = n == 2
+        row = int(n == 2)
         col = n % 2
         real_p_interp, real_vn_interp, real_err = calc_vn_vs_pt(
             real_data, pt_min, pt_max, eta_max, nbins, n + 1

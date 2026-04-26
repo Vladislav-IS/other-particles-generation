@@ -175,6 +175,9 @@ if __name__ == "__main__":
         test_mask_obj={1.7: test_1_7_mask, 5: test_5_mask},
         test_nucl_mask_obj={1.7: test_1_7_nucl_mask, 5: test_5_nucl_mask},
         test_nucl_obj={1.7: test_1_7_nucl, 5: test_5_nucl},
+        test_event_obj={1.7: test_1_7_event, 5: test_5_event},
+        metrics_mode_name=G.__class__.__name__,
+        final_metrics={},
         num_classes=num_classes,
         meson_count_max=meson_count_max,
     )

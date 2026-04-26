@@ -6,7 +6,7 @@ import copy
 import matplotlib.pyplot as plt
 from src.calculations import set_seed
 from src.inference import get_dist_metrics, get_energy_metrics
-from src.plots import plot_kde, plot_scatter, plot_vn, plot_losses
+from src.plots import plot_losses
 from src.config import *
 
 
@@ -308,7 +308,7 @@ def train_model(
     """
     if use_shadow:
         G_shadow = copy.deepcopy(G).eval()
-        update_average(beta=0.0)
+        update_average(G_shadow, G, beta=0.0)
     else:
         G_shadow = None
     losses = {}
@@ -344,10 +344,12 @@ def train_model(
                 metrics[b] = get_dist_metrics(
                     gen,
                     generate_func,
+                    meson_count_max,
                     test_mom[b],
                     test_cond[b],
                     test_label[b],
                     test_mask[b],
+                    device,
                     **kwargs
                 )
                 w1 = [
@@ -440,15 +442,18 @@ def train_and_test(
                 final_metrics[metrics_mode_name][seed][b] = get_dist_metrics(
                     gen,
                     generate_func,
+                    meson_count_max,
                     test_mom_obj[b],
                     test_cond_obj[b],
                     test_label_obj[b],
                     test_mask_obj[b],
+                    device,
                     **kwargs
                 )
                 get_energy_metrics(
                     gen,
                     generate_func,
+                    meson_count_max,
                     test_mom_obj[b],
                     test_nucl_obj[b],
                     test_nucl_mask_obj[b],
@@ -456,5 +461,7 @@ def train_and_test(
                     test_cond_obj[b],
                     test_label_obj[b],
                     test_mask_obj[b],
+                    device,
+                    **kwargs
                 )
     return G, G_shadow, D
