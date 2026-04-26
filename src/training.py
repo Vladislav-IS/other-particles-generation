@@ -445,3 +445,4 @@ def train_and_test(
                                test_cond_obj[b], 
                                test_label_obj[b], 
                                test_mask_obj[b])
+    return G, G_shadow, D

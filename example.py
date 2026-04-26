@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from src.calculations import preprocess_urqmd
 from src.config import *
-from src.training import train_epoch_transformer, train_model
+from src.training import train_epoch_transformer, train_and_test
 from src.inference import generate_transformer, get_dist_metrics, get_energy_metrics
 from src.transformer import EPiC_Transformer_Discriminator, EPiC_Transformer_Generator
 
@@ -155,10 +155,10 @@ if __name__ == "__main__":
     opt_g = optim.Adam(G.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
     opt_d = optim.Adam(D.parameters(), lr=args.lr, betas=(args.beta_1, args.beta_2))
 
-    losses_my = train_model(
+    G, G_shadow, D = train_and_test(
         G=G,
         D=D,
-        dataloader=urqmd_train_dataloader,
+        train_loader=urqmd_train_dataloader,
         optim_G=opt_g,
         optim_D=opt_d,
         device=device,
@@ -167,37 +167,12 @@ if __name__ == "__main__":
         epochs=args.epochs,
         train_epoch_func=train_epoch_transformer,
         generate_func=generate_transformer,
-        test_mom=test_1_7_mom,
-        test_cond=test_1_7_cond,
-        test_label=test_1_7_label,
-        test_mask=test_1_7_mask,
+        test_mom_obj={1.7: test_1_7_mom, 5: test_5_mom},
+        test_cond_obj={1.7: test_1_7_cond, 5: test_5_cond},
+        test_label_obj={1.7: test_1_7_label, 5: test_5_label},
+        test_mask_obj={1.7: test_1_7_mask, 5: test_5_mask},
+        test_nucl_mask_obj={1.7: test_1_7_nucl_mask, 5: test_5_nucl_mask},
+        test_nucl_obj={1.7: test_1_7_nucl, 5: test_5_nucl},
         num_classes=num_classes,
         meson_count_max=meson_count_max,
-    )
-
-    get_dist_metrics(
-        G,
-        generate_transformer,
-        meson_count_max,
-        test_1_7_mom,
-        test_1_7_nucl,
-        test_1_7_nucl_mask,
-        test_1_7_event,
-        test_1_7_cond,
-        test_1_7_label,
-        test_1_7_mask,
-        device,
-    )
-    get_energy_metrics(
-        G,
-        generate_transformer,
-        meson_count_max,
-        test_1_7_mom,
-        test_1_7_nucl,
-        test_1_7_nucl_mask,
-        test_1_7_event,
-        test_1_7_cond,
-        test_1_7_label,
-        test_1_7_mask,
-        device,
     )

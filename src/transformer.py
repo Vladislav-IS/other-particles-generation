@@ -100,17 +100,11 @@ class EPiC_Transformer_Generator(nn.Module):
         self.feats = feats
         self.extern_cond_d = extern_cond_d
         self.emb = nn.Embedding(num_labels, d_model)
-        if extern_cond_d is None:
+        if extern_cond_d is not None:
             self.cond_proj = (
-                weight_norm(nn.Linear(2 * d_model, d_model))
+                weight_norm(nn.Linear(extern_cond_d, d_model))
                 if use_weight_norm
-                else nn.Linear(2 * d_model, d_model)
-            )
-        else:
-            self.cond_proj = (
-                weight_norm(nn.Linear(extern_cond_d + 2 * d_model, d_model))
-                if use_weight_norm
-                else nn.Linear(extern_cond_d + 2 * d_model, d_model)
+                else nn.Linear(extern_cond_d, d_model)
             )
         self.global_proj = (
             weight_norm(nn.Linear(latent_global, d_model))
@@ -165,13 +159,13 @@ class EPiC_Transformer_Generator(nn.Module):
         batch_size = labels.size(0)
         z_local = self.local_sampler(batch_size)
         z_global = self.global_sampler(batch_size)
-        labels_emb = self.emb(labels)
-        x_global = self.global_proj(z_global)
+        labels_emb = self.emb(labels).mean(dim=1).unsqueeze(1)
+        x_global = self.global_proj(z_global).unsqueeze(1)
         if self.extern_cond_d is not None:
-            context = torch.cat([x_global, labels_emb, cond], dim=-1)
+            x_cond = self.cond_proj(cond).unsqueeze(1)
+            context = torch.cat([x_global, labels_emb, x_cond], dim=1)
         else:
-            context = torch.cat([x_global, labels_emb], dim=-1)
-        context = self.cond_proj(context.unsqueeze(1))
+            context = torch.cat([x_global, labels_emb], dim=1)
         slots = self.local_proj(z_local)
         for block in self.blocks:
             slots = block(slots, context, mask=None)
@@ -225,17 +219,16 @@ class EPiC_Transformer_Discriminator(nn.Module):
         )
         if extern_cond_d is not None:
             self.cond_proj = (
-                weight_norm(nn.Linear(extern_cond_d + 2 * d_model, d_model))
+                weight_norm(nn.Linear(extern_cond_d, d_model))
                 if use_weight_norm
-                else nn.Linear(extern_cond_d + 2 * d_model, d_model)
+                else nn.Linear(extern_cond_d, d_model)
             )
-        else:
-            self.cond_proj = (
+        self.in_global_proj = (
                 weight_norm(nn.Linear(2 * d_model, d_model))
                 if use_weight_norm
                 else nn.Linear(2 * d_model, d_model)
             )
-        self.global_proj = nn.Sequential(
+        self.out_global_proj = nn.Sequential(
             (
                 weight_norm(nn.Linear(3 * d_model, d_model))
                 if use_weight_norm
@@ -274,17 +267,18 @@ class EPiC_Transformer_Discriminator(nn.Module):
         """
         B, N, _ = x.shape
         x_local = self.input_proj(x)
-        label_emb = self.emb(labels).unsqueeze(1)
+        label_emb = self.emb(labels).mean(dim=1).unsqueeze(1)
+        x_sum = x_local.sum(dim=1)
         if mask is not None:
-            #    masked = x_local * mask.unsqueeze(-1)
-            x_global = x_local.sum(dim=1) / mask.sum(dim=1, keepdim=True)
+            x_mean = x_sum / mask.sum(dim=1, keepdim=True)
         else:
-            x_global = x_local.mean(dim=1)
+            x_mean = x_local.mean(dim=1)
+        x_global = self.in_global_proj(torch.cat([x_mean, x_sum], dim=-1)).unsqueeze(1)
         if self.extern_cond_d is not None:
-            x_global = torch.cat([x_global, label_emb.squeeze(1), cond], dim=-1)
+            x_cond = self.cond_proj(cond).unsqueeze(1)
+            x_global = torch.cat([x_global, label_emb, x_cond], dim=1)
         else:
-            x_global = torch.cat([x_global, label_emb.squeeze(1)], dim=-1)
-        x_global = self.cond_proj(x_global)
+            x_global = torch.cat([x_global, label_emb], dim=1)
         for block in self.blocks:
             x_local = block(x_local, x_global, mask)
         if mask is not None:
@@ -295,5 +289,5 @@ class EPiC_Transformer_Discriminator(nn.Module):
             final_mean = x_local.mean(dim=1)
             final_sum = x_local.sum(dim=1)
         final_feat = torch.cat([final_mean, final_sum, x_global], dim=-1)
-        out = self.global_proj(final_feat).squeeze(-1)
+        out = self.out_global_proj(final_feat).squeeze(-1)
         return out
