@@ -21,18 +21,21 @@ def set_seed(seed):
 
 def calc_vn_vs_pt(data, pt_min, pt_max, eta_max, nbins, n, n_interp=500):
     """
-    Function for calculating v_n(p_T) dependency.
+    Function for calculating v_n(p_T) dependency with error bars.
+
     Parameters:
     - data - particles momenta;
     - pt_min - minimal value of transverse momentum;
     - pt_max - maximum value of transverse momentum;
     - eta_max - maximum value of pseudorapidity;
-    - nbins - number of points for v_n(p_T) dependency;
-    - n - cosine coefficient (flow number).
+    - nbins - number of bins for v_n(p_T) dependency;
+    - n - cosine coefficient (flow number);
+    - n_interp - number of points for interpolation.
+
     Return:
-    - bin_centers - bins centers for error bar;
-    - vn mean values;
-    - vn error values.
+    - p_interp - interpolated p_T values;
+    - vn_interp - interpolated v_n values;
+    - err_interp - interpolated errors (standard error of the mean).
     """
     pt_all, phi_all = [], []
     for event in data:
@@ -52,24 +55,32 @@ def calc_vn_vs_pt(data, pt_min, pt_max, eta_max, nbins, n, n_interp=500):
     bin_edges = np.linspace(pt_min, pt_max, nbins + 1)
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     vn_vals = []
+    err_vals = []
     for i in range(nbins):
         mask_bin = (pt_all >= bin_edges[i]) & (pt_all < bin_edges[i + 1])
         if np.sum(mask_bin) == 0:
             vn_vals.append(np.nan)
+            err_vals.append(np.nan)
         else:
             cos_nphi = np.cos(n * phi_all[mask_bin])
             vn_vals.append(np.mean(cos_nphi))
+            err_vals.append(np.std(cos_nphi) / np.sqrt(len(cos_nphi)))
     vn_vals = np.array(vn_vals)
+    err_vals = np.array(err_vals)
     valid = ~np.isnan(vn_vals)
     if np.sum(valid) < 2:
         raise ValueError("Недостаточно бинов с частицами для интерполяции")
     bin_centers_valid = bin_centers[valid]
     vn_valid = vn_vals[valid]
-    f = interp1d(bin_centers_valid, vn_valid, kind='linear',
-                 fill_value='extrapolate', bounds_error=False)
+    err_valid = err_vals[valid]
+    f_vn = interp1d(bin_centers_valid, vn_valid, kind='linear',
+                    fill_value='extrapolate', bounds_error=False)
+    f_err = interp1d(bin_centers_valid, err_valid, kind='linear',
+                     fill_value='extrapolate', bounds_error=False)
     p_interp = np.linspace(pt_min, pt_max, n_interp)
-    vn_interp = f(p_interp)
-    return p_interp, vn_interp
+    vn_interp = f_vn(p_interp)
+    err_interp = f_err(p_interp)
+    return p_interp, vn_interp, err_interp
 
 
 def get_masked_pt(p, pt_min=0.2, pt_max=None, eta_max=1.0):

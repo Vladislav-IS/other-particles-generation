@@ -121,9 +121,6 @@ def get_dist_metrics(
     generate_func,
     n_points,
     test_mom,
-    test_nucl,
-    test_nucl_mask,
-    test_event,
     test_cond,
     test_label,
     test_mask,
@@ -137,7 +134,6 @@ def get_dist_metrics(
     - generate_func - model-specific generation function;
     - n_points - length of padded particles sequences;
     - test_mom - tensors of thue "other" particles momenta (test subset);
-    - test_nucl, test_nucl_mask, test_event - unused parameters;
     - test_cond - external condition (test subset);
     - test_label - particles types (test subset);
     - test_mask - padding mask (test subset);
