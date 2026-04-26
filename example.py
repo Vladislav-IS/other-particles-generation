@@ -11,7 +11,7 @@ import pandas as pd
 from src.calculations import preprocess_urqmd
 from src.config import *
 from src.training import train_epoch_transformer, train_and_test
-from src.inference import generate_transformer, get_dist_metrics, get_energy_metrics
+from src.inference import generate_transformer
 from src.transformer import EPiC_Transformer_Discriminator, EPiC_Transformer_Generator
 
 

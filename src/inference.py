@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from src.plots import plot_kde, plot_scatter, plot_v2, plot_pt
+from src.plots import plot_kde, plot_scatter, plot_vn, plot_pt
 from src.calculations import calc_energy
 from src.config import *
 
@@ -175,7 +175,7 @@ def get_dist_metrics(
         )
         plot_scatter(other_test, generated_other)
         if num_to_label[i] != 111:
-            plot_v2(other_test, generated_other)
+            plot_vn(other_test, generated_other)
     return metrics
 
 
