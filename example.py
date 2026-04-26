@@ -45,7 +45,9 @@ if __name__ == "__main__":
         gdown.download(
             "https://drive.google.com/uc?id=1mBNT9X2qJRgRFHAhRIfv6kFSHQRnbZ4T"
         )
-    if not os.path.exists("smash_particles_xecs_2.87gev_hardSkyrme_defaultSpot_10943245_10.root"):
+    if not os.path.exists(
+        "smash_particles_xecs_2.87gev_hardSkyrme_defaultSpot_10943245_10.root"
+    ):
         gdown.download(
             "https://drive.google.com/uc?id=1BrMboOkpiwmMfJO0PStSxUmiLqWqYHi_"
         )

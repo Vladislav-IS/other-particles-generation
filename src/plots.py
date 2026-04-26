@@ -171,30 +171,36 @@ def plot_vn(
     for n in range(3):
         row = n == 2
         col = n % 2
-        real_p_interp, real_vn_interp, real_err = calc_vn_vs_pt(real_data, pt_min, pt_max, eta_max, nbins, n + 1)
-        fake_p_interp, fake_vn_interp, fake_err = calc_vn_vs_pt(fake_data, pt_min, pt_max, eta_max, nbins, n + 1)
+        real_p_interp, real_vn_interp, real_err = calc_vn_vs_pt(
+            real_data, pt_min, pt_max, eta_max, nbins, n + 1
+        )
+        fake_p_interp, fake_vn_interp, fake_err = calc_vn_vs_pt(
+            fake_data, pt_min, pt_max, eta_max, nbins, n + 1
+        )
         ax[row][col].plot(real_p_interp, real_vn_interp, label="Real")
         ax[row][col].plot(fake_p_interp, fake_vn_interp, label="Fake")
-        ax[row][col].fill_between(real_p_interp, real_vn_interp - real_err, real_vn_interp + real_err, alpha=0.3)
-        ax[row][col].fill_between(fake_p_interp, fake_vn_interp - fake_err, fake_vn_interp + fake_err, alpha=0.3)
+        ax[row][col].fill_between(
+            real_p_interp,
+            real_vn_interp - real_err,
+            real_vn_interp + real_err,
+            alpha=0.3,
+        )
+        ax[row][col].fill_between(
+            fake_p_interp,
+            fake_vn_interp - fake_err,
+            fake_vn_interp + fake_err,
+            alpha=0.3,
+        )
         ax[row][col].set_xlabel("pT (GeV/c)")
         ax[row][col].set_ylabel(f"v{n + 1}")
         ax[row][col].legend()
         ax[row][col].grid(alpha=0.3)
         ax[row][col].set_title(f"v{n + 1}(pT) with eta < {eta_max}")
     ax[1][1].hist(
-        pt_real_all.numpy(),
-        bins=pt_bins,
-        density=True,
-        alpha=0.5,
-        label="Real"
+        pt_real_all.numpy(), bins=pt_bins, density=True, alpha=0.5, label="Real"
     )
     ax[1][1].hist(
-        pt_fake_all.numpy(),
-        bins=pt_bins,
-        density=True,
-        alpha=0.5,
-        label="Fake"
+        pt_fake_all.numpy(), bins=pt_bins, density=True, alpha=0.5, label="Fake"
     )
     ax[1][1].set_xlabel("pT, GeV/c")
     ax[1][1].set_ylabel("Normalized count")

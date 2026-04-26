@@ -73,10 +73,20 @@ def calc_vn_vs_pt(data, pt_min, pt_max, eta_max, nbins, n, n_interp=500):
     bin_centers_valid = bin_centers[valid]
     vn_valid = vn_vals[valid]
     err_valid = err_vals[valid]
-    f_vn = interp1d(bin_centers_valid, vn_valid, kind='linear',
-                    fill_value='extrapolate', bounds_error=False)
-    f_err = interp1d(bin_centers_valid, err_valid, kind='linear',
-                     fill_value='extrapolate', bounds_error=False)
+    f_vn = interp1d(
+        bin_centers_valid,
+        vn_valid,
+        kind="linear",
+        fill_value="extrapolate",
+        bounds_error=False,
+    )
+    f_err = interp1d(
+        bin_centers_valid,
+        err_valid,
+        kind="linear",
+        fill_value="extrapolate",
+        bounds_error=False,
+    )
     p_interp = np.linspace(pt_min, pt_max, n_interp)
     vn_interp = f_vn(p_interp)
     err_interp = f_err(p_interp)

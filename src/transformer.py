@@ -224,10 +224,10 @@ class EPiC_Transformer_Discriminator(nn.Module):
                 else nn.Linear(extern_cond_d, d_model)
             )
         self.in_global_proj = (
-                weight_norm(nn.Linear(2 * d_model, d_model))
-                if use_weight_norm
-                else nn.Linear(2 * d_model, d_model)
-            )
+            weight_norm(nn.Linear(2 * d_model, d_model))
+            if use_weight_norm
+            else nn.Linear(2 * d_model, d_model)
+        )
         self.out_global_proj = nn.Sequential(
             (
                 weight_norm(nn.Linear(3 * d_model, d_model))

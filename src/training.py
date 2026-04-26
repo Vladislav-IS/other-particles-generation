@@ -179,7 +179,7 @@ def train_epoch_epic(
     clip_val=1.0,
     use_shadow=False,
     G_shadow=None,
-    ema_beta=0.5
+    ema_beta=0.5,
 ):
     """
     Function for EPiC transformer training (1 epoch).
@@ -222,8 +222,12 @@ def train_epoch_epic(
                     + F.mse_loss(d_fake, torch.zeros_like(d_fake))
                 )
             else:
-                d_label_real = torch.full((batch_size, 1), 1, dtype=torch.float, device=device)
-                d_label_fake = torch.full((batch_size, 1), 0, dtype=torch.float, device=device)
+                d_label_real = torch.full(
+                    (batch_size, 1), 1, dtype=torch.float, device=device
+                )
+                d_label_fake = torch.full(
+                    (batch_size, 1), 0, dtype=torch.float, device=device
+                )
                 d_label_cat = torch.cat((d_label_real, d_label_fake), dim=0)
                 out_cat = torch.cat((real_impulses, fake_impulses), dim=0)
                 discr_out_cat = D(out_cat)
@@ -239,7 +243,7 @@ def train_epoch_epic(
         if mode == "lsgan":
             g_loss = F.mse_loss(d_fake, torch.ones_like(d_fake))
         else:
-            d_label = torch.full((batch_size,1), 1, dtype=torch.float, device=device)
+            d_label = torch.full((batch_size, 1), 1, dtype=torch.float, device=device)
             discr_out = D(fake_impulses)
             g_loss = F.binary_cross_entropy_with_logits(discr_out, d_label)
         g_loss.backward()
@@ -311,19 +315,19 @@ def train_model(
     for epoch in range(epochs):
         epoch_losses = train_epoch_func(
             G=G,
-            D=D, 
-            dataloader=dataloader, 
-            optim_G=optim_G, 
-            optim_D=optim_D, 
-            device=device, 
-            mode=mode, 
-            d_iters=d_iters, 
+            D=D,
+            dataloader=dataloader,
+            optim_G=optim_G,
+            optim_D=optim_D,
+            device=device,
+            mode=mode,
+            d_iters=d_iters,
             ema_beta=ema_beta,
             G_shadow=G_shadow,
             use_shadow=use_shadow,
             **kwargs
         )
-        best_w1 = float('inf')
+        best_w1 = float("inf")
         for k, v in epoch_losses.items():
             if k in losses.keys():
                 losses[k].append(v)
@@ -346,13 +350,17 @@ def train_model(
                     test_mask[b],
                     **kwargs
                 )
-                w1 = [metrics[b][part_type]['w1_0'] for b in metrics for part_type in metrics[b]]
-                average_w1 = sum(w1) / len(w1) if w1 else float('inf')
+                w1 = [
+                    metrics[b][part_type]["w1_0"]
+                    for b in metrics
+                    for part_type in metrics[b]
+                ]
+                average_w1 = sum(w1) / len(w1) if w1 else float("inf")
                 if average_w1 < best_w1:
-                    torch.save(D.state_dict(), 'best_d.pt')
-                    torch.save(G.state_dict(), 'best_g.pt')
+                    torch.save(D.state_dict(), "best_d.pt")
+                    torch.save(G.state_dict(), "best_g.pt")
                     if use_shadow:
-                        torch.save(G_shadow.state_dict(), 'best_g_shadow.pt')
+                        torch.save(G_shadow.state_dict(), "best_g_shadow.pt")
             G.train()
             if use_shadow:
                 G_shadow.train()
@@ -420,10 +428,10 @@ def train_and_test(
             ema_beta=ema_beta,
             **kwargs
         )
-        G.load_state_dict(torch.load('best_g.pt'))
-        D.load_state_dict(torch.load('best_d.pt'))
+        G.load_state_dict(torch.load("best_g.pt"))
+        D.load_state_dict(torch.load("best_d.pt"))
         if use_shadow:
-            G_shadow.load_state_dict(torch.load('best_g_shadow.pt'))
+            G_shadow.load_state_dict(torch.load("best_g_shadow.pt"))
         gen = G_shadow if use_shadow else G
         gen.eval()
         plt.clf()
@@ -438,13 +446,15 @@ def train_and_test(
                     test_mask_obj[b],
                     **kwargs
                 )
-                get_energy_metrics(gen, 
-                                   generate_func, 
-                                   test_mom_obj[b],
-                                   test_nucl_obj[b], 
-                                   test_nucl_mask_obj[b], 
-                                   test_event_obj[b],
-                                   test_cond_obj[b], 
-                                   test_label_obj[b], 
-                                   test_mask_obj[b])
+                get_energy_metrics(
+                    gen,
+                    generate_func,
+                    test_mom_obj[b],
+                    test_nucl_obj[b],
+                    test_nucl_mask_obj[b],
+                    test_event_obj[b],
+                    test_cond_obj[b],
+                    test_label_obj[b],
+                    test_mask_obj[b],
+                )
     return G, G_shadow, D
