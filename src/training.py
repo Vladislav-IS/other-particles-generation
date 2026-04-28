@@ -12,6 +12,19 @@ from src.plots import plot_losses
 def compute_gradient_penalty(
     discriminator, real_data, fake_data, cond, labels, mask_real, mask_fake
 ):
+    """
+    Function for computing gradient penalty for WGAN_GP.
+    Parameters:
+    - discriminator;
+    - real_data - real particles momenta;
+    - fake_data - generated particles momenta;
+    - cond - condition tensor;
+    - labels - labels tensor;
+    - mask_real - mask for real data;
+    - mask_fake - mask for generated data.
+    Return:
+    - gp - gradient penalty value
+    """
     batch_size = real_data.size(0)
     epsilon = torch.rand(batch_size, 1, 1, device=real_data.device)
     interpolated = epsilon * real_data + (1 - epsilon) * fake_data
@@ -45,6 +58,23 @@ def wgan_gp_loss(
     mask_fake,
     lambda_gp=10,
 ):
+    """
+    WGAN-GP loss function.
+    Parameters:
+    - d_real - discriminator output for real data;
+    - d_fake - discriminator output for generated data;
+    - real_data - real particles momenta;
+    - fake_data - generated particles momenta;
+    - discriminator;
+    - cond - condition tensor;
+    - labels - labels tensor;
+    - mask_real - mask for real data;
+    - mask_fake - mask for generated data;
+    - lambda_gp - gradient penalty coefficient.
+    Return:
+    - d_loss - discriminator loss value;
+    - g_loss - generator loss value
+    """
     gp = compute_gradient_penalty(
         discriminator, real_data, fake_data, cond, labels, mask_real, mask_fake
     )
@@ -54,6 +84,13 @@ def wgan_gp_loss(
 
 
 def update_average(model_tgt, model_src, beta):
+    """
+    EMA weights updating function.
+    Parameters:
+    - model_tgt - updating model;
+    - model_src - source model for EMA updating;
+    - beta - EMA updating coefficient
+    """
     with torch.no_grad():
         params_src = dict(model_src.named_parameters())
         params_tgt = dict(model_tgt.named_parameters())
