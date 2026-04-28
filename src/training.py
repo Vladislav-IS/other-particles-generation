@@ -92,7 +92,10 @@ def train_epoch_transformer(
     - d_iters - number of iteration steps for discriminator;
     - lambda_mask - weight of mask_loss;
     - lambda_len - weight of length loss;
-    - clip_val - clipping value.
+    - clip_val - clipping value;
+    - use_shadow - flag if weights updating with EMA is used;
+    - G_shadow - generator copy for EMA updating;
+    - ema_beta - EMA coefficient. 
     Return:
     - losses dictionary
     """
@@ -193,7 +196,10 @@ def train_epoch_epic(
     - d_iters - number of iteration steps for discriminator;
     - zg_dim - global noise dimensionalty;
     - zl_dim - local noise dimensionalty;
-    - clip_val - clipping value.
+    - clip_val - clipping value;
+    - use_shadow - flag if weights updating with EMA is used;
+    - G_shadow - generator copy for EMA updating;
+    - ema_beta - EMA coefficient. 
     Return:
     - losses dictionary
     """
@@ -294,17 +300,23 @@ def train_model(
     - epochs - number of training epochs;
     - train_epoch_func - model-specific training function;
     - generate_fucn - model-specific generation function;
-    - test_mom - real momenta from test subset;
-    - test_cond - external condition from test subset;
-    - test_label - particle types from test subset;
-    - test_mask - padding masks from test subset;
+    - test_mom - real momenta from test subset (as a dict "impact parameter - momenta values");
+    - test_cond - external condition from test subset (as a dict "impact parameter - condition values");;
+    - test_label - particle types from test subset (as a dict "impact parameter - labels");;
+    - test_mask - padding masks from test subset (as a dict "impact parameter - masks");;
     - num_classes - number of particles types;
     - meson_count_max - maximum length of padded particles sequences;
     - scheduler_g - generator scheduler;
     - scheduler_d - discriminator scheduler;
+    - use_shadow - flag if weights updating with EMA is used;
+    - ema_beta - EMA coefficient;
+    - model_name - name for models state_dict() files (generator, discriminator, shadow generator in case of EMA updating)
     - kwargs - for model-specific training and generation function.
     Return:
-    - losses dictionary
+    - losses dictionary;
+    - G - generator;
+    - G_shadow - generator copy in case of EMA updating;
+    - D - discriminator
     """
     if use_shadow:
         G_shadow = copy.deepcopy(G).eval()
@@ -404,6 +416,42 @@ def train_and_test(
     model_name="best",
     **kwargs,
 ):
+    """
+    Function for training and validation pipeline.
+    Parameters:
+    - G - generator;
+    - D - discriminator;
+    - train_dataloader - train dataloader;
+    - optim_G - generator optimizer;
+    - optim_D - discriminator optimizer;
+    - device - "cuda" or "cpu";
+    - mode - learning mode ("lsgan" etc.);
+    - d_iters - number of iteration steps for discriminator;
+    - epochs - number of training epochs;
+    - train_epoch_func - model-specific training function;
+    - generate_fucn - model-specific generation function;
+    - test_mom_obj - real momenta from test subset (as a dict "impact parameter - target momenta values");
+    - test_cond_obj - external condition from test subset (as a dict "impact parameter - condition values");
+    - test_label_obj - particle types from test subset (as a dict "impact parameter - labels");
+    - test_mask_obj - padding masks from test subset (as a dict "impact parameter - masks");
+    - test_nucl_obj - padding masks from test subset (as a dict "impact parameter - nucleons momenta values");
+    - test_nucl_mask_obj - padding masks from test subset (as a dict "impact parameter - nucleons masks");
+    - num_classes - number of particles types;
+    - meson_count_max - maximum length of padded particles sequences;
+    - metrics_mode_name - key name for final_metrics dictionary;
+    - seeds - list of random seeds;
+    - final_metrics - metrics dictionary;
+    - scheduler_g - generator scheduler;
+    - scheduler_d - discriminator scheduler;
+    - use_shadow - flag if weights updating with EMA is used;
+    - ema_beta - EMA coefficient;
+    - model_name - name for models state_dict() files (generator, discriminator, shadow generator in case of EMA updating)
+    - kwargs - for model-specific training and generation function.
+    Return:
+    - G - generator;
+    - G_shadow - generator copy in case of EMA updating;
+    - D - discriminator
+    """
     final_metrics[metrics_mode_name] = {}
     for seed in seeds:
         final_metrics[metrics_mode_name][seed] = {}
