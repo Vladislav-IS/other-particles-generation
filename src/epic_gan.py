@@ -44,7 +44,7 @@ class EPiC_layer(nn.Module):
 
 class EPiC_generator(nn.Module):
     """
-    vanilla EPiC-GAN generator
+    Conditional EPiC-GAN generator
     """
 
     def __init__(
@@ -111,6 +111,10 @@ class EPiC_generator(nn.Module):
 
 
 class EPiC_discriminator(nn.Module):
+    """
+    Conditional EPiC-GAN discriminator
+    """
+
     def __init__(
         self,
         latent,

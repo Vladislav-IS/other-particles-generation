@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from src.calculations import set_seed
 from src.inference import get_dist_metrics, get_energy_metrics
 from src.plots import plot_losses
-from src.config import *
 
 
 def compute_gradient_penalty(
@@ -279,7 +278,8 @@ def train_model(
     scheduler_d=None,
     use_shadow=False,
     ema_beta=0.5,
-    **kwargs
+    model_name="best",
+    **kwargs,
 ):
     """
     Unified function for training.
@@ -325,7 +325,7 @@ def train_model(
             ema_beta=ema_beta,
             G_shadow=G_shadow,
             use_shadow=use_shadow,
-            **kwargs
+            **kwargs,
         )
         best_w1 = float("inf")
         for k, v in epoch_losses.items():
@@ -350,7 +350,7 @@ def train_model(
                     test_label[b],
                     test_mask[b],
                     device,
-                    **kwargs
+                    **kwargs,
                 )
                 w1 = [
                     metrics[b][part_type]["w1_0"]
@@ -359,10 +359,10 @@ def train_model(
                 ]
                 average_w1 = sum(w1) / len(w1) if w1 else float("inf")
                 if average_w1 < best_w1:
-                    torch.save(D.state_dict(), "best_d.pt")
-                    torch.save(G.state_dict(), "best_g.pt")
+                    torch.save(D.state_dict(), f"{model_name}_d.pt")
+                    torch.save(G.state_dict(), f"{model_name}_g.pt")
                     if use_shadow:
-                        torch.save(G_shadow.state_dict(), "best_g_shadow.pt")
+                        torch.save(G_shadow.state_dict(), f"{model_name}_g_shadow.pt")
             G.train()
             if use_shadow:
                 G_shadow.train()
@@ -395,12 +395,14 @@ def train_and_test(
     num_classes,
     meson_count_max,
     metrics_mode_name,
+    seeds,
     final_metrics,
     scheduler_g=None,
     scheduler_d=None,
     use_shadow=False,
     ema_beta=0.5,
-    **kwargs
+    model_name="best",
+    **kwargs,
 ):
     final_metrics[metrics_mode_name] = {}
     for seed in seeds:
@@ -428,12 +430,13 @@ def train_and_test(
             scheduler_g=scheduler_g,
             use_shadow=use_shadow,
             ema_beta=ema_beta,
-            **kwargs
+            model_name=model_name,
+            **kwargs,
         )
-        G.load_state_dict(torch.load("best_g.pt"))
-        D.load_state_dict(torch.load("best_d.pt"))
+        G.load_state_dict(torch.load(f"{model_name}_g.pt"))
+        D.load_state_dict(torch.load(f"{model_name}_d.pt"))
         if use_shadow:
-            G_shadow.load_state_dict(torch.load("best_g_shadow.pt"))
+            G_shadow.load_state_dict(torch.load(f"{model_name}_g_shadow.pt"))
         gen = G_shadow if use_shadow else G
         gen.eval()
         plt.clf()
@@ -448,7 +451,7 @@ def train_and_test(
                     test_label_obj[b],
                     test_mask_obj[b],
                     device,
-                    **kwargs
+                    **kwargs,
                 )
                 get_energy_metrics(
                     gen,
@@ -462,6 +465,6 @@ def train_and_test(
                     test_label_obj[b],
                     test_mask_obj[b],
                     device,
-                    **kwargs
+                    **kwargs,
                 )
     return G, G_shadow, D

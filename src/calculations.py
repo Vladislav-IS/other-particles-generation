@@ -69,7 +69,10 @@ def calc_vn_vs_pt(data, pt_min, pt_max, eta_max, nbins, n, n_interp=500):
     err_vals = np.array(err_vals)
     valid = ~np.isnan(vn_vals)
     if np.sum(valid) < 2:
-        raise ValueError("Недостаточно бинов с частицами для интерполяции")
+        p_interp = np.linspace(pt_min, pt_max, n_interp)
+        vn_interp = np.array([0.0 for _ in range(len(p_interp))])
+        err_interp = np.array([0.0 for _ in range(len(p_interp))])
+        return p_interp, vn_interp, err_interp
     bin_centers_valid = bin_centers[valid]
     vn_valid = vn_vals[valid]
     err_valid = err_vals[valid]

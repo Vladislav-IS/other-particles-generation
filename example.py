@@ -12,7 +12,7 @@ from src.calculations import preprocess_urqmd
 from src.config import *
 from src.training import train_epoch_transformer, train_and_test
 from src.inference import generate_transformer
-from src.transformer import EPiC_Transformer_Discriminator, EPiC_Transformer_Generator
+from src.epic_transformer import EPiC_Transformer_Discriminator, EPiC_Transformer_Generator
 
 
 if __name__ == "__main__":
@@ -177,6 +177,7 @@ if __name__ == "__main__":
         test_nucl_obj={1.7: test_1_7_nucl, 5: test_5_nucl},
         test_event_obj={1.7: test_1_7_event, 5: test_5_event},
         metrics_mode_name=G.__class__.__name__,
+        seeds=seeds,
         final_metrics={},
         num_classes=num_classes,
         meson_count_max=meson_count_max,
