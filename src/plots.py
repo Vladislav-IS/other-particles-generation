@@ -15,12 +15,6 @@ from src.config import *
 
 
 def plot_losses(losses):
-    """
-    Function for losses plotting.
-    Parameters:
-    - losses - dictionary "losses type - epoch losses list"
-    """
-    plt.clf()
     len_ = len(losses.keys())
     fig, ax = plt.subplots(nrows=1, ncols=len_, figsize=(3 * len_, 3))
     for j, k in enumerate(losses.keys()):
@@ -30,21 +24,8 @@ def plot_losses(losses):
     plt.show()
 
 
-def plot_kde(real, fake, dim_names, part_type, num=None):
-    """
-    Fucntion for plotting and calculating distribution metric with respect of .
-    Parameters:
-    - real - real data;
-    - fake - generated data;
-    - dim_names - list of momenta components names (x, y, z);
-    - part_type - particle type PDG;
-    - num - number of selected particle in sequences sorted by momenta absolute value (if None, all particles in sequences are considered).
-    Return:
-    - kl - KL divergence calculated using KDE of real and fake data;
-    - w1 - W1 distance calculated using KDE of real and fake data;
-    - w2 - W2 distance calculated using KDE of real and fake data.
-    """
-    fig, axes = plt.subplots(2, 5, figsize=(25, 7))
+def plot_kde(real, fake, dim_names, part_type, num=None, show_plots=True):
+    fig, axes = plt.subplots(2, 5, figsize=(25, 9))
     if num is not None:
         p_sq = real[..., 0] ** 2 + real[..., 1] ** 2 + real[..., 2] ** 2
         sorted_indices = torch.argsort(p_sq, dim=1, descending=True)
@@ -66,19 +47,26 @@ def plot_kde(real, fake, dim_names, part_type, num=None):
     fake_energy = calc_energy(fake[..., 0], fake[..., 1], fake[..., 2], masses)
     real_eta = calc_pseudorapidity(real[..., 0], real[..., 1], real[..., 2])
     fake_eta = calc_pseudorapidity(fake[..., 0], fake[..., 1], fake[..., 2])
+    metrics = {}
     for i in range(5):
         if i < 3:
             real_vals = real[:, i].numpy()
             fake_vals = fake[:, i].numpy()
-            title_pre = f"{part_type} {dim_names[i]}"
+            title_pre = f"{part_names[part_type]} ({dim_names[i]},"
+            axes[0, i].set_xlabel(f"$p_{dim_names[i]}$")
+            axes[1, i].set_xlabel(f"$p_{dim_names[i]}$")
         elif i == 3:
             real_vals = real_energy.numpy()
             fake_vals = fake_energy.numpy()
-            title_pre = f"{part_type} energy"
+            title_pre = f"{part_names[part_type]} (" + r"$E$" + ", "
+            axes[0, i].set_xlabel(r"$E$")
+            axes[1, i].set_xlabel(r"$E$")
         else:
             real_vals = real_eta.numpy()
             fake_vals = fake_eta.numpy()
-            title_pre = f"{part_type} pseudorapidity"
+            title_pre = f"{part_names[part_type]} (" + r"$\eta$" + ", "
+            axes[0, i].set_xlabel(r"$\eta$")
+            axes[1, i].set_xlabel(r"$\eta$")
         kde_real = stats.gaussian_kde(real_vals, bw_method="scott")
         kde_fake = stats.gaussian_kde(fake_vals, bw_method="scott")
         x_points = np.linspace(
@@ -91,30 +79,37 @@ def plot_kde(real, fake, dim_names, part_type, num=None):
         kl = kl_divergence(kde_real, kde_fake, x_points)
         w1 = wasserstein_distance(real_vals, fake_vals)
         w2 = w2_distance_1d(real_vals, fake_vals)
-        axes[0, i].plot(x_points, pdf_real, label="Real")
-        axes[0, i].plot(x_points, pdf_fake, label="Fake")
+        if i == 3:
+            metrics["e_kl"] = kl
+            metrics["e_w1"] = w1
+        elif i > 3:
+            metrics["eta_kl"] = kl
+            metrics["eta_w1"] = w1
+        axes[0, i].plot(x_points, pdf_real, label="UrQMD", color="tab:blue")
+        axes[0, i].plot(x_points, pdf_fake, label="GAN", color="tab:red")
         axes[0, i].set_title(
-            f'{title_pre} ({"all" if num is None else num}) KL={kl:.3f} W1={w1:.3f} W2={w2:.3f}'
+            f'{title_pre} {"все частицы" if num is None else r"$p_{max}$" if num == 0 else num})\nKL={kl:.3f} W1={w1:.3f} W2={w2:.3f}'
         )
         axes[0, i].legend()
         axes[0, i].grid(True, alpha=0.3)
-        axes[1, i].hist(real_vals, bins=50, alpha=0.5, label="Real")
-        axes[1, i].hist(fake_vals, bins=50, alpha=0.5, label="Fake")
-        axes[1, i].set_title(f"{title_pre} histogram")
+        axes[1, i].hist(real_vals, bins=50, alpha=0.5, color="tab:blue", label="UrQMD")
+        axes[1, i].hist(
+            fake_vals, bins=50, histtype="step", color="tab:red", label="GAN"
+        )
+        axes[1, i].set_title(
+            f'{title_pre} {"все частицы" if num is None else r"$p_{max}$" if num == 0 else num})'
+        )
         axes[1, i].legend()
         axes[1, i].grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.show()
-    return kl, w1, w2
+    if show_plots:
+        plt.tight_layout()
+        plt.show()
+    else:
+        plt.close()
+    return metrics
 
 
 def plot_scatter(real, fake):
-    """
-    Function for plotting particles in 3D momenta components space.
-    Parameters:
-    - real - real data;
-    - fake - fake data.
-    """
     fig = plt.figure(figsize=(12, 5))
     ax1 = fig.add_subplot(121, projection="3d")
     real_flat = real.reshape(-1, real.shape[-1])
@@ -122,12 +117,18 @@ def plot_scatter(real, fake):
     real_flat = real_flat[~torch.all(real_flat == 0.0, dim=1)]
     fake_flat = fake_flat[~torch.all(fake_flat == 0.0, dim=1)]
     ax1.scatter(
-        real_flat[:, 0], real_flat[:, 1], real_flat[:, 2], alpha=0.6, label="Real"
+        real_flat[:, 0],
+        real_flat[:, 1],
+        real_flat[:, 2],
+        alpha=0.6,
     )
     ax1.set_xlim(-2, 2)
+    ax1.set_xlabel(r"$p_x$", fontsize=14, labelpad=10)
     ax1.set_ylim(-2, 2)
+    ax1.set_ylabel(r"$p_y$", fontsize=14, labelpad=10)
     ax1.set_zlim(-2, 2)
-    ax1.set_title("Real")
+    ax1.set_zlabel(r"$p_z$", fontsize=14, labelpad=10)
+    ax1.set_title("UrQMD")
     ax2 = fig.add_subplot(122, projection="3d")
     ax2.scatter(
         fake_flat[:, 0],
@@ -135,12 +136,14 @@ def plot_scatter(real, fake):
         fake_flat[:, 2],
         alpha=0.6,
         color="orange",
-        label="Fake",
     )
     ax2.set_xlim(-2, 2)
+    ax2.set_xlabel(r"$p_x$", fontsize=14, labelpad=10)
     ax2.set_ylim(-2, 2)
+    ax2.set_ylabel(r"$p_y$", fontsize=14, labelpad=10)
     ax2.set_zlim(-2, 2)
-    ax2.set_title("Fake")
+    ax2.set_zlabel(r"$p_z$", fontsize=14, labelpad=10)
+    ax2.set_title("GAN")
     plt.show()
 
 
@@ -148,96 +151,144 @@ def plot_vn(
     real_data,
     fake_data,
     pt_min=0.0,
-    pt_max=2.0,
+    pt_max=1.2,
     eta_max=10.0,
     nbins=10,
     pt_bins=50,
+    min_particles=15,
+    n_interp=200,
 ):
-    """
-    Function for plotting v_n(p_T) dependency and p_T distribution.
-    Parameters:
-    - real_data - real momenta;
-    - fake_data - fake momenta;
-    - n - cosine coefficient (flow number);
-    - pt_min - minimal value of transverse momentum;
-    - pt_max - maximum value of transverse momentum;
-    - eta_max - maximum value of pseudorapidity;
-    - nbins - number of points for v_n(p_T) dependency;
-    - pt_bins - number of bins for p_T distribution histogram
-    """
-    pt_real_all = calc_pt_dist(real_data, pt_min=0, eta_max=eta_max)
-    pt_fake_all = calc_pt_dist(fake_data, pt_min=0, eta_max=eta_max)
+    metrics = {}
     fig, ax = plt.subplots(ncols=2, nrows=2, figsize=(16, 10))
-    for n in range(3):
-        row = int(n == 2)
-        col = n % 2
-        real_p_interp, real_vn_interp, real_err = calc_vn_vs_pt(
-            real_data, pt_min, pt_max, eta_max, nbins, n + 1
+    harmonics = [1, 2, 3]
+    for idx, n in enumerate(harmonics):
+        row = int(idx == 2)
+        col = idx % 2
+        real_p, real_vn, real_err, real_is_interp = calc_vn_vs_pt(
+            real_data,
+            pt_min,
+            pt_max,
+            eta_max,
+            nbins,
+            n,
+            min_particles=min_particles,
+            n_interp=n_interp,
         )
-        fake_p_interp, fake_vn_interp, fake_err = calc_vn_vs_pt(
-            fake_data, pt_min, pt_max, eta_max, nbins, n + 1
+        fake_p, fake_vn, fake_err, fake_is_interp = calc_vn_vs_pt(
+            fake_data,
+            pt_min,
+            pt_max,
+            eta_max,
+            nbins,
+            n,
+            min_particles=min_particles,
+            n_interp=n_interp,
         )
-        ax[row][col].plot(real_p_interp, real_vn_interp, label="Real")
-        ax[row][col].plot(fake_p_interp, fake_vn_interp, label="Fake")
+        metrics[f"v{n}"] = np.nanmean((real_vn - fake_vn) ** 2)
+        mask_real_meas = ~real_is_interp
+        ax[row][col].plot(
+            real_p[mask_real_meas],
+            real_vn[mask_real_meas],
+            color="C0",
+            linewidth=2,
+            label="UrQMD (измер.)",
+        )
         ax[row][col].fill_between(
-            real_p_interp,
-            real_vn_interp - real_err,
-            real_vn_interp + real_err,
-            alpha=0.3,
+            real_p, real_vn - real_err, real_vn + real_err, alpha=0.2, color="C0"
+        )
+        mask_real_interp = real_is_interp
+        if np.any(mask_real_interp):
+            ax[row][col].plot(
+                real_p[mask_real_interp],
+                real_vn[mask_real_interp],
+                "--",
+                color="C0",
+                linewidth=1,
+                alpha=0.5,
+                label="UrQMD (интерп.)" if idx == 0 else "",
+            )
+        mask_fake_meas = ~fake_is_interp
+        ax[row][col].plot(
+            fake_p[mask_fake_meas],
+            fake_vn[mask_fake_meas],
+            color="C3",
+            linewidth=2,
+            label="GAN (измер.)",
         )
         ax[row][col].fill_between(
-            fake_p_interp,
-            fake_vn_interp - fake_err,
-            fake_vn_interp + fake_err,
-            alpha=0.3,
+            fake_p, fake_vn - fake_err, fake_vn + fake_err, alpha=0.2, color="C3"
         )
-        ax[row][col].set_xlabel("pT (GeV/c)")
-        ax[row][col].set_ylabel(f"v{n + 1}")
-        ax[row][col].legend()
+        mask_fake_interp = fake_is_interp
+        if np.any(mask_fake_interp):
+            ax[row][col].plot(
+                fake_p[mask_fake_interp],
+                fake_vn[mask_fake_interp],
+                "--",
+                color="C3",
+                linewidth=1,
+                alpha=0.5,
+                label="GAN (интерп.)" if idx == 0 else "",
+            )
+        ax[row][col].set_xlabel(r"$p_T$ (GeV/c)", fontsize=12)
+        ax[row][col].set_ylabel(f"$v_{{{n}}}$", fontsize=12)
+        ax[row][col].legend(fontsize=9)
         ax[row][col].grid(alpha=0.3)
-        ax[row][col].set_title(f"v{n + 1}(pT) with eta < {eta_max}")
+        ax[row][col].set_title(f"$v_{{{n}}}(p_T)$", fontsize=13)
+    pt_real_all = calc_pt_dist(real_data)
+    pt_fake_all = calc_pt_dist(fake_data)
     ax[1][1].hist(
-        pt_real_all.numpy(), bins=pt_bins, density=True, alpha=0.5, label="Real"
+        pt_real_all.numpy(),
+        bins=pt_bins,
+        density=True,
+        alpha=0.5,
+        label="UrQMD",
+        color="C0",
     )
     ax[1][1].hist(
-        pt_fake_all.numpy(), bins=pt_bins, density=True, alpha=0.5, label="Fake"
+        pt_fake_all.numpy(),
+        bins=pt_bins,
+        density=True,
+        alpha=0.5,
+        label="GAN",
+        color="C3",
     )
-    ax[1][1].set_xlabel("pT, GeV/c")
-    ax[1][1].set_ylabel("Normalized count")
-    ax[1][1].set_title("pT distribution")
+    ax[1][1].set_xlabel(r"$p_T$ (GeV/c)", fontsize=12)
+    ax[1][1].set_ylabel("Нормированное число частиц", fontsize=12)
+    ax[1][1].set_title("Распределение по $p_T$", fontsize=13)
     ax[1][1].legend()
     ax[1][1].grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
+    return metrics
 
 
 def plot_pt(real, fake, mode="pt"):
-    """
-    Function for plotting energy metrics (pT and energy fractions).
-    Parameters:
-    - real - real momenta;
-    - fake - fake momenta;
-    - mode - "pt" (transverse momenta) or "energy"
-    """
-    real_keys = [str(k) for k in real.keys()]
+    real_keys = [
+        part_names[k] if k in part_names.keys() else str(k) for k in real.keys()
+    ]
     real_values = [np.mean(v) for v in real.values()]
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(real_keys, real_values, label="Real", alpha=0.5)
-    fake_keys = [str(k) for k in fake.keys()]
+    ax.bar(real_keys, real_values, label="UrQMD", alpha=0.5)
+    fake_keys = [
+        part_names[k] if k in part_names.keys() else str(k) for k in fake.keys()
+    ]
     fake_values = [np.mean(v) for v in fake.values()]
-    bars = ax.bar(fake_keys, fake_values, label="Fake", alpha=0.5)
+    bars = ax.bar(fake_keys, fake_values, label="GAN", alpha=0.5)
     real_values = np.array(real_values)
     fake_values = np.array(fake_values)
     ratios = [
-        f"{round(val, 2)}%"
-        for val in (np.abs(real_values - fake_values) / real_values * 100)
+        round(val, 2) for val in (np.abs(real_values - fake_values) / real_values * 100)
     ]
-    ax.bar_label(bars, labels=ratios, padding=3)
+    str_ratios = [f"{val}%" for val in ratios]
+    ax.bar_label(bars, labels=str_ratios, padding=3)
     ax.set_xlabel("particle type")
     ax.set_ylabel("value")
     ax.set_title(
-        "Transverse momentum modulus fraction" if mode == "pt" else "Energy fraction"
+        "Доля поперечного импульса в событии"
+        if mode == "pt"
+        else "Доля полной энергии в событии"
     )
     ax.grid(axis="y", linestyle="--", alpha=0.7)
     ax.legend()
     plt.show()
+    return np.mean(ratios)

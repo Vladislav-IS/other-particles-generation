@@ -6,18 +6,6 @@ from src.config import *
 
 
 def generate_transformer(G, batch_size, n_points, cond, labels, device, threshold=0.5):
-    """
-    Function for particles sets generation via EPiC-styled transformer.
-    Parameters:
-    - G - tramsformer generator;
-    - batch_size, n_points - unused parameters;
-    - cond - external condition;
-    - labels - particles types;
-    - device - "cuda" or "cpu";
-    - threshold - threshold for generated mask.
-    Return:
-    - momenta tensor
-    """
     G.eval()
     cond = cond.to(device)
     labels = labels.to(device)
@@ -28,43 +16,11 @@ def generate_transformer(G, batch_size, n_points, cond, labels, device, threshol
     return impulses.cpu()
 
 
-def generate_epic(G, batch_size, n_points, cond, labels, device, zg_dim, zl_dim):
-    """
-    Function for particles sets generation via vanilla EPiC-GAN.
-    Parameters:
-    - G - tramsformer generator;
-    - batch_size,
-    - n_points - length of padded particles sequences;
-    - cond - external condition;
-    - labels - particles types;
-    - device - "cuda" or "cpu";
-    - zg_dim - global noise dimensionality;
-    - zl_dim - local noise dimensionality.
-    Return:
-    - momenta tensor
-    """
-    G.eval()
-    cond = cond.to(device)
-    labels = labels.to(device)
-    z_global = torch.randn(batch_size, zg_dim, device=device)
-    z_local = torch.randn(batch_size, n_points, zl_dim, device=device)
-    with torch.no_grad():
-        impulses = G(z_global, z_local, cond, labels)
-    return impulses.cpu()
-
-
 def count_pt(particles):
-    """
-    Function for calculating transverse momentum modulus fraction by particle type.
-    Paeameters:
-    - particles - dictionary containing raw tensors of particles momenta.
-    Return:
-    - pt_parts - dictionary containing transverse momentum modulus fraction
-    """
     pt_parts = {}
     sum_pt = 0
     for k, v in particles.items():
-        pt = torch.sum(torch.sqrt(v[:, 0] ** 2 + v[:, 1] ** 2))
+        pt = torch.sum(torch.sqrt(v[..., 0] ** 2 + v[..., 1] ** 2))
         sum_pt += pt
         pt_parts[k] = pt
     pt_parts = {k: (v / sum_pt).item() for k, v in pt_parts.items()}
@@ -72,17 +28,10 @@ def count_pt(particles):
 
 
 def count_e(particles):
-    """
-    Function for calculating energy fraction by particle type (using real tabular data).
-    Paeameters:
-    - particles - dictionary containing raw tensors of particles energies.
-    Return:
-    - e_parts - dictionary containing energy fraction
-    """
     e_parts = {}
     sum_e = 0
     for k, v in particles.items():
-        e = torch.sum(v[:, -1])
+        e = torch.sum(v[..., -1])
         sum_e += e
         e_parts[k] = e
     e_parts = {k: (v / sum_e).item() for k, v in e_parts.items()}
@@ -90,24 +39,20 @@ def count_e(particles):
 
 
 def count_e_with_mass(particles):
-    """
-    Function for calculating energy fraction by particle type (using momenta and particles masses).
-    Paeameters:
-    - particles - dictionary containing raw tensors of particles momenta.
-    Return:
-    - e_parts - dictionary containing energy fraction
-    """
     e_parts = {}
     sum_e = 0
     for k, v in particles.items():
-        if k == "protons" or k == "neutrons":
-            e = torch.sum(v[:, -1])
+        if k == "нуклоны":
+            e = torch.sum(v[..., -1])
             sum_e += e
             e_parts[k] = e
         else:
             e = torch.sum(
                 calc_energy(
-                    v[:, 0], v[:, 1], v[:, 2], torch.full_like(v[:, 0], pion_masses[k])
+                    v[..., 0],
+                    v[..., 1],
+                    v[..., 2],
+                    torch.full_like(v[:, 0], pion_masses[k]),
                 )
             )
             sum_e += e
@@ -127,21 +72,6 @@ def get_dist_metrics(
     device,
     **kwargs
 ):
-    """
-    Function for plotting and calculating distribution metrics (KL divergence, Wasserstein distance).
-    Paeameters:
-    - G - generator model;
-    - generate_func - model-specific generation function;
-    - n_points - length of padded particles sequences;
-    - test_mom - tensors of thue "other" particles momenta (test subset);
-    - test_cond - external condition (test subset);
-    - test_label - particles types (test subset);
-    - test_mask - padding mask (test subset);
-    - device - "cuda" or "cpu";
-    - kwargs - for model-specific generation function.
-    Return:
-    - metrics - dictionary containing metrics for all particles and the fastest partlice
-    """
     metrics = {}
     for i in range(len(num_to_label)):
         metrics[num_to_label[i]] = {}
@@ -155,27 +85,43 @@ def get_dist_metrics(
         generated_other = generate_func(
             G, mask.sum(), n_points, cond_test, label_test, device, **kwargs
         )
-        kl, w1, w2 = plot_kde(
-            other_test, generated_other, ["Px", "Py", "Pz"], num_to_label[i]
+        m = plot_kde(other_test, generated_other, ["Px", "Py", "Pz"], num_to_label[i])
+        metrics[num_to_label[i]]["e_kl"] = m["e_kl"]
+        metrics[num_to_label[i]]["e_w1"] = m["e_w1"]
+        metrics[num_to_label[i]]["eta_kl"] = m["eta_kl"]
+        metrics[num_to_label[i]]["eta_w1"] = m["eta_w1"]
+        m_0 = plot_kde(
+            other_test,
+            generated_other,
+            ["Px", "Py", "Pz"],
+            num_to_label[i],
+            num=0,
+            show_plots=False,
         )
-        metrics[num_to_label[i]]["kl"] = kl
-        metrics[num_to_label[i]]["w1"] = w1
-        metrics[num_to_label[i]]["w2"] = w2
-        kl_0, w1_0, w2_0 = plot_kde(
-            other_test, generated_other, ["Px", "Py", "Pz"], num_to_label[i], num=0
-        )
-        metrics[num_to_label[i]]["kl_0"] = kl_0
-        metrics[num_to_label[i]]["w1_0"] = w1_0
-        metrics[num_to_label[i]]["w2_0"] = w2_0
+        metrics[num_to_label[i]]["e_kl_0"] = m_0["e_kl"]
+        metrics[num_to_label[i]]["e_w1_0"] = m_0["e_w1"]
+        metrics[num_to_label[i]]["eta_kl_0"] = m_0["eta_kl"]
+        metrics[num_to_label[i]]["eta_w1_0"] = m_0["eta_w1"]
         plot_kde(
-            other_test, generated_other, ["Px", "Py", "Pz"], num_to_label[i], num=1
+            other_test,
+            generated_other,
+            ["Px", "Py", "Pz"],
+            num_to_label[i],
+            num=1,
+            show_plots=False,
         )
         plot_kde(
-            other_test, generated_other, ["Px", "Py", "Pz"], num_to_label[i], num=2
+            other_test,
+            generated_other,
+            ["Px", "Py", "Pz"],
+            num_to_label[i],
+            num=2,
+            show_plots=False,
         )
         plot_scatter(other_test, generated_other)
-        if num_to_label[i] != 111:
-            plot_vn(other_test, generated_other)
+        vn_metrics = plot_vn(other_test, generated_other)
+        for k, v in vn_metrics.items():
+            metrics[num_to_label[i]][k] = v
     return metrics
 
 
@@ -193,22 +139,6 @@ def get_energy_metrics(
     device,
     **kwargs
 ):
-    """
-    Function for plotting energy metrics (transverse momentum modulus and energy fraction).
-    Paeameters:
-    - G - generator model;
-    - generate_func - model-specific generation function;
-    - n_points - length of padded particles sequences;
-    - test_mom - tensors of thue "other" particles momenta (test subset);
-    - test_nucl - nucleons momenta from test subset;
-    - test_nucl_mask - nucleons padding mask from test subset;
-    - test_event - tensor of event numbers from test subset;
-    - test_cond - external condition (test subset);
-    - test_label - particles types (test subset);
-    - test_mask - padding mask (test subset);
-    - device - "cuda" or "cpu";
-    - kwargs - for model-specific generation function.
-    """
     all_real_pt = {}
     all_fake_pt = {}
     all_real_e = {}
@@ -220,22 +150,8 @@ def get_energy_metrics(
         other_test = torch.tensor(test_mom, dtype=torch.float32)[mask]
         real = {}
         fake = {}
-        nucl_1_test = torch.tensor(
-            [nucl[0] for nucl in test_nucl], dtype=torch.float32
-        )[mask]
-        nucl_2_test = torch.tensor(
-            [nucl[1] for nucl in test_nucl], dtype=torch.float32
-        )[mask]
-        nucl_1_test_mask = torch.tensor(
-            [nucl[0] for nucl in test_nucl_mask], dtype=torch.float32
-        )[mask]
-        nucl_2_test_mask = torch.tensor(
-            [nucl[1] for nucl in test_nucl_mask], dtype=torch.float32
-        )[mask]
-        real["protons"] = (nucl_1_test * nucl_1_test_mask.unsqueeze(-1))[0]
-        real["neutrons"] = (nucl_2_test * nucl_2_test_mask.unsqueeze(-1))[0]
-        fake["protons"] = (nucl_1_test * nucl_1_test_mask.unsqueeze(-1))[0]
-        fake["neutrons"] = (nucl_2_test * nucl_2_test_mask.unsqueeze(-1))[0]
+        real["нуклоны"] = torch.tensor(test_nucl, dtype=torch.float32)[mask][0]
+        fake["нуклоны"] = torch.tensor(test_nucl, dtype=torch.float32)[mask][0]
         label_test = torch.tensor(test_label)[mask]
         mask_test = torch.tensor(test_mask, dtype=torch.float32)[mask]
         cond_test = torch.tensor(test_cond, dtype=torch.float32)[mask]
@@ -260,5 +176,11 @@ def get_energy_metrics(
                 all_fake_pt[k] = [fake_pt[k]]
                 all_real_e[k] = [real_e[k]]
                 all_fake_e[k] = [fake_e[k]]
-    plot_pt(all_real_pt, all_fake_pt)
-    plot_pt(all_real_e, all_fake_e, mode="energy")
+    metrics = {}
+    pt_ = plot_pt(all_real_pt, all_fake_pt)
+    e_ = plot_pt(all_real_e, all_fake_e, mode="energy")
+    for p in pions:
+        metrics[p] = {}
+        metrics[p]["pt"] = pt_
+        metrics[p]["e"] = e_
+    return metrics

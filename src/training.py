@@ -1,9 +1,7 @@
 import torch
 from torch import nn
-from torch.nn.utils import clip_grad_norm_
 import torch.nn.functional as F
 import copy
-import matplotlib.pyplot as plt
 from src.calculations import set_seed
 from src.inference import get_dist_metrics, get_energy_metrics
 from src.plots import plot_losses
@@ -12,19 +10,6 @@ from src.plots import plot_losses
 def compute_gradient_penalty(
     discriminator, real_data, fake_data, cond, labels, mask_real, mask_fake
 ):
-    """
-    Function for computing gradient penalty for WGAN_GP.
-    Parameters:
-    - discriminator;
-    - real_data - real particles momenta;
-    - fake_data - generated particles momenta;
-    - cond - condition tensor;
-    - labels - labels tensor;
-    - mask_real - mask for real data;
-    - mask_fake - mask for generated data.
-    Return:
-    - gp - gradient penalty value
-    """
     batch_size = real_data.size(0)
     epsilon = torch.rand(batch_size, 1, 1, device=real_data.device)
     interpolated = epsilon * real_data + (1 - epsilon) * fake_data
@@ -58,23 +43,6 @@ def wgan_gp_loss(
     mask_fake,
     lambda_gp=10,
 ):
-    """
-    WGAN-GP loss function.
-    Parameters:
-    - d_real - discriminator output for real data;
-    - d_fake - discriminator output for generated data;
-    - real_data - real particles momenta;
-    - fake_data - generated particles momenta;
-    - discriminator;
-    - cond - condition tensor;
-    - labels - labels tensor;
-    - mask_real - mask for real data;
-    - mask_fake - mask for generated data;
-    - lambda_gp - gradient penalty coefficient.
-    Return:
-    - d_loss - discriminator loss value;
-    - g_loss - generator loss value
-    """
     gp = compute_gradient_penalty(
         discriminator, real_data, fake_data, cond, labels, mask_real, mask_fake
     )
@@ -84,13 +52,6 @@ def wgan_gp_loss(
 
 
 def update_average(model_tgt, model_src, beta):
-    """
-    EMA weights updating function.
-    Parameters:
-    - model_tgt - updating model;
-    - model_src - source model for EMA updating;
-    - beta - EMA updating coefficient
-    """
     with torch.no_grad():
         params_src = dict(model_src.named_parameters())
         params_tgt = dict(model_tgt.named_parameters())
@@ -116,26 +77,6 @@ def train_epoch_transformer(
     G_shadow=None,
     ema_beta=0.5,
 ):
-    """
-    Function for EPiC transformer training (1 epoch).
-    Parameters:
-    - G - generator;
-    - D - discriminator;
-    - dataloader - train dataloader;
-    - optim_G - generator optimizer;
-    - optim_D - discriminator optimizer;
-    - device - "cuda" or "cpu";
-    - mode - "lsgan", other modes are unused;
-    - d_iters - number of iteration steps for discriminator;
-    - lambda_mask - weight of mask_loss;
-    - lambda_len - weight of length loss;
-    - clip_val - clipping value;
-    - use_shadow - flag if weights updating with EMA is used;
-    - G_shadow - generator copy for EMA updating;
-    - ema_beta - EMA coefficient. 
-    Return:
-    - losses dictionary
-    """
     G.train()
     D.train()
     epoch_d_loss = 0.0
@@ -204,101 +145,6 @@ def train_epoch_transformer(
     }
 
 
-def train_epoch_epic(
-    G,
-    D,
-    dataloader,
-    optim_G,
-    optim_D,
-    device,
-    mode="lsgan",
-    d_iters=1,
-    zg_dim=128,
-    zl_dim=16,
-    clip_val=1.0,
-    use_shadow=False,
-    G_shadow=None,
-    ema_beta=0.5,
-):
-    """
-    Function for EPiC transformer training (1 epoch).
-    Parameters:
-    - G - generator;
-    - D - discriminator;
-    - dataloader - train dataloader;
-    - optim_G - generator optimizer;
-    - optim_D - discriminator optimizer;
-    - device - "cuda" or "cpu";
-    - mode - "lsgan", other modes are unused;
-    - d_iters - number of iteration steps for discriminator;
-    - zg_dim - global noise dimensionalty;
-    - zl_dim - local noise dimensionalty;
-    - clip_val - clipping value;
-    - use_shadow - flag if weights updating with EMA is used;
-    - G_shadow - generator copy for EMA updating;
-    - ema_beta - EMA coefficient. 
-    Return:
-    - losses dictionary
-    """
-    G.train()
-    D.train()
-    epoch_d_loss = 0.0
-    epoch_g_loss = 0.0
-    num_batches = 0
-    for real_impulses, cond, labels, mask in dataloader:
-        real_impulses = real_impulses[..., :3].to(device)
-        cond = cond.to(device)
-        labels = labels.to(device)
-        batch_size, n_points, _ = real_impulses.shape
-        for _ in range(d_iters):
-            optim_D.zero_grad()
-            d_real = D(real_impulses, cond, labels)
-            z_global = torch.randn(batch_size, zg_dim, device=device)
-            z_local = torch.randn(batch_size, n_points, zl_dim, device=device)
-            with torch.no_grad():
-                fake_impulses = G(z_global, z_local, cond, labels)
-            d_fake = D(fake_impulses.detach(), cond, labels)
-            if mode == "lsgan":
-                d_loss = 0.5 * (
-                    F.mse_loss(d_real, torch.ones_like(d_real))
-                    + F.mse_loss(d_fake, torch.zeros_like(d_fake))
-                )
-            else:
-                d_label_real = torch.full(
-                    (batch_size, 1), 1, dtype=torch.float, device=device
-                )
-                d_label_fake = torch.full(
-                    (batch_size, 1), 0, dtype=torch.float, device=device
-                )
-                d_label_cat = torch.cat((d_label_real, d_label_fake), dim=0)
-                out_cat = torch.cat((real_impulses, fake_impulses), dim=0)
-                discr_out_cat = D(out_cat)
-                d_loss = F.binary_cross_entropy_with_logits(discr_out_cat, d_label_cat)
-            d_loss.backward()
-            clip_grad_norm_(D.parameters(), clip_val)
-            optim_D.step()
-        optim_G.zero_grad()
-        z_global = torch.randn(batch_size, zg_dim, device=device)
-        z_local = torch.randn(batch_size, n_points, zl_dim, device=device)
-        fake_impulses = G(z_global, z_local, cond, labels)
-        d_fake = D(fake_impulses, cond, labels)
-        if mode == "lsgan":
-            g_loss = F.mse_loss(d_fake, torch.ones_like(d_fake))
-        else:
-            d_label = torch.full((batch_size, 1), 1, dtype=torch.float, device=device)
-            discr_out = D(fake_impulses)
-            g_loss = F.binary_cross_entropy_with_logits(discr_out, d_label)
-        g_loss.backward()
-        clip_grad_norm_(G.parameters(), clip_val)
-        optim_G.step()
-        epoch_d_loss += d_loss.item()
-        epoch_g_loss += g_loss.item()
-        num_batches += 1
-        if use_shadow and G_shadow is not None:
-            update_average(G_shadow, G, ema_beta)
-    return {"d_loss": epoch_d_loss / num_batches, "g_loss": epoch_g_loss / num_batches}
-
-
 def train_model(
     G,
     D,
@@ -324,37 +170,6 @@ def train_model(
     model_name="best",
     **kwargs,
 ):
-    """
-    Unified function for training.
-    Parameters:
-    - G - generator;
-    - D - discriminator;
-    - dataloader - train dataloader;
-    - optim_G - generator optimizer;
-    - optim_D - discriminator optimizer;
-    - device - "cuda" or "cpu";
-    - d_iters - number of iteration steps for discriminator;
-    - epochs - number of training epochs;
-    - train_epoch_func - model-specific training function;
-    - generate_fucn - model-specific generation function;
-    - test_mom - real momenta from test subset (as a dict "impact parameter - momenta values");
-    - test_cond - external condition from test subset (as a dict "impact parameter - condition values");;
-    - test_label - particle types from test subset (as a dict "impact parameter - labels");;
-    - test_mask - padding masks from test subset (as a dict "impact parameter - masks");;
-    - num_classes - number of particles types;
-    - meson_count_max - maximum length of padded particles sequences;
-    - scheduler_g - generator scheduler;
-    - scheduler_d - discriminator scheduler;
-    - use_shadow - flag if weights updating with EMA is used;
-    - ema_beta - EMA coefficient;
-    - model_name - name for models state_dict() files (generator, discriminator, shadow generator in case of EMA updating)
-    - kwargs - for model-specific training and generation function.
-    Return:
-    - losses dictionary;
-    - G - generator;
-    - G_shadow - generator copy in case of EMA updating;
-    - D - discriminator
-    """
     if use_shadow:
         G_shadow = copy.deepcopy(G).eval()
         update_average(G_shadow, G, beta=0.0)
@@ -401,17 +216,18 @@ def train_model(
                     device,
                     **kwargs,
                 )
-                w1 = [
-                    metrics[b][part_type]["w1_0"]
-                    for b in metrics
-                    for part_type in metrics[b]
-                ]
-                average_w1 = sum(w1) / len(w1) if w1 else float("inf")
-                if average_w1 < best_w1:
-                    torch.save(D.state_dict(), f"{model_name}_d.pt")
-                    torch.save(G.state_dict(), f"{model_name}_g.pt")
-                    if use_shadow:
-                        torch.save(G_shadow.state_dict(), f"{model_name}_g_shadow.pt")
+            w1 = [
+                metrics[b][part_type]["eta_w1_0"]
+                for b in metrics
+                for part_type in metrics[b]
+            ]
+            average_w1 = sum(w1) / len(w1) if w1 else float("inf")
+            if average_w1 <= best_w1:
+                best_w1 = average_w1
+                torch.save(D.state_dict(), f"{model_name}_d.pt")
+                torch.save(G.state_dict(), f"{model_name}_g.pt")
+                if use_shadow:
+                    torch.save(G_shadow.state_dict(), f"{model_name}_g_shadow.pt")
             G.train()
             if use_shadow:
                 G_shadow.train()
@@ -434,6 +250,13 @@ def train_and_test(
     epochs,
     train_epoch_func,
     generate_func,
+    val_mom_obj,
+    val_cond_obj,
+    val_label_obj,
+    val_mask_obj,
+    val_nucl_obj,
+    val_nucl_mask_obj,
+    val_event_obj,
     test_mom_obj,
     test_cond_obj,
     test_label_obj,
@@ -453,43 +276,8 @@ def train_and_test(
     model_name="best",
     **kwargs,
 ):
-    """
-    Function for training and validation pipeline.
-    Parameters:
-    - G - generator;
-    - D - discriminator;
-    - train_dataloader - train dataloader;
-    - optim_G - generator optimizer;
-    - optim_D - discriminator optimizer;
-    - device - "cuda" or "cpu";
-    - mode - learning mode ("lsgan" etc.);
-    - d_iters - number of iteration steps for discriminator;
-    - epochs - number of training epochs;
-    - train_epoch_func - model-specific training function;
-    - generate_fucn - model-specific generation function;
-    - test_mom_obj - real momenta from test subset (as a dict "impact parameter - target momenta values");
-    - test_cond_obj - external condition from test subset (as a dict "impact parameter - condition values");
-    - test_label_obj - particle types from test subset (as a dict "impact parameter - labels");
-    - test_mask_obj - padding masks from test subset (as a dict "impact parameter - masks");
-    - test_nucl_obj - padding masks from test subset (as a dict "impact parameter - nucleons momenta values");
-    - test_nucl_mask_obj - padding masks from test subset (as a dict "impact parameter - nucleons masks");
-    - num_classes - number of particles types;
-    - meson_count_max - maximum length of padded particles sequences;
-    - metrics_mode_name - key name for final_metrics dictionary;
-    - seeds - list of random seeds;
-    - final_metrics - metrics dictionary;
-    - scheduler_g - generator scheduler;
-    - scheduler_d - discriminator scheduler;
-    - use_shadow - flag if weights updating with EMA is used;
-    - ema_beta - EMA coefficient;
-    - model_name - name for models state_dict() files (generator, discriminator, shadow generator in case of EMA updating)
-    - kwargs - for model-specific training and generation function.
-    Return:
-    - G - generator;
-    - G_shadow - generator copy in case of EMA updating;
-    - D - discriminator
-    """
-    final_metrics[metrics_mode_name] = {}
+    if metrics_mode_name not in final_metrics.keys():
+        final_metrics[metrics_mode_name] = {}
     for seed in seeds:
         final_metrics[metrics_mode_name][seed] = {}
         set_seed(seed)
@@ -505,10 +293,10 @@ def train_and_test(
             epochs=epochs,
             train_epoch_func=train_epoch_func,
             generate_func=generate_func,
-            test_mom=test_mom_obj,
-            test_cond=test_cond_obj,
-            test_label=test_label_obj,
-            test_mask=test_mask_obj,
+            test_mom=val_mom_obj,
+            test_cond=val_cond_obj,
+            test_label=val_label_obj,
+            test_mask=val_mask_obj,
             num_classes=num_classes,
             meson_count_max=meson_count_max,
             scheduler_d=scheduler_d,
@@ -524,10 +312,9 @@ def train_and_test(
             G_shadow.load_state_dict(torch.load(f"{model_name}_g_shadow.pt"))
         gen = G_shadow if use_shadow else G
         gen.eval()
-        plt.clf()
         with torch.no_grad():
             for b in test_mom_obj.keys():
-                final_metrics[metrics_mode_name][seed][b] = get_dist_metrics(
+                dist_metrics = get_dist_metrics(
                     gen,
                     generate_func,
                     meson_count_max,
@@ -538,7 +325,7 @@ def train_and_test(
                     device,
                     **kwargs,
                 )
-                get_energy_metrics(
+                energy_metrics = get_energy_metrics(
                     gen,
                     generate_func,
                     meson_count_max,
@@ -552,4 +339,11 @@ def train_and_test(
                     device,
                     **kwargs,
                 )
+                combined = {}
+                for pid in dist_metrics:
+                    combined[pid] = {**dist_metrics[pid], **energy_metrics.get(pid, {})}
+                for pid in energy_metrics:
+                    if pid not in combined:
+                        combined[pid] = energy_metrics[pid]
+                final_metrics[metrics_mode_name][seed][b] = combined
     return G, G_shadow, D

@@ -9,105 +9,17 @@ from src.config import *
 
 
 def set_seed(seed):
-    """
-    Function forrandom seed fixation.
-    Paramerers:
-    - seed
-    """
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-
-
-def calc_vn_vs_pt(data, pt_min, pt_max, eta_max, nbins, n, n_interp=500):
-    """
-    Function for calculating v_n(p_T) dependency with error bars.
-
-    Parameters:
-    - data - particles momenta;
-    - pt_min - minimal value of transverse momentum;
-    - pt_max - maximum value of transverse momentum;
-    - eta_max - maximum value of pseudorapidity;
-    - nbins - number of bins for v_n(p_T) dependency;
-    - n - cosine coefficient (flow number);
-    - n_interp - number of points for interpolation.
-
-    Return:
-    - p_interp - interpolated p_T values;
-    - vn_interp - interpolated v_n values;
-    - err_interp - interpolated errors (standard error of the mean).
-    """
-    pt_all, phi_all = [], []
-    for event in data:
-        if isinstance(event, torch.Tensor):
-            event = event.cpu().numpy()
-        px = event[..., 0]
-        py = event[..., 1]
-        pz = event[..., 2]
-        pt = np.sqrt(px**2 + py**2)
-        p_total = np.sqrt(pt**2 + pz**2)
-        eta = 0.5 * np.log((p_total + pz) / (p_total - pz + 1e-10))
-        mask = (pt > pt_min) & (pt < pt_max) & (np.abs(eta) < eta_max)
-        pt_all.extend(pt[mask])
-        phi_all.extend(np.arctan2(py[mask], px[mask]))
-    pt_all = np.array(pt_all)
-    phi_all = np.array(phi_all)
-    bin_edges = np.linspace(pt_min, pt_max, nbins + 1)
-    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-    vn_vals = []
-    err_vals = []
-    for i in range(nbins):
-        mask_bin = (pt_all >= bin_edges[i]) & (pt_all < bin_edges[i + 1])
-        if np.sum(mask_bin) == 0:
-            vn_vals.append(np.nan)
-            err_vals.append(np.nan)
-        else:
-            cos_nphi = np.cos(n * phi_all[mask_bin])
-            vn_vals.append(np.mean(cos_nphi))
-            err_vals.append(np.std(cos_nphi) / np.sqrt(len(cos_nphi)))
-    vn_vals = np.array(vn_vals)
-    err_vals = np.array(err_vals)
-    valid = ~np.isnan(vn_vals)
-    if np.sum(valid) < 2:
-        p_interp = np.linspace(pt_min, pt_max, n_interp)
-        vn_interp = np.array([0.0 for _ in range(len(p_interp))])
-        err_interp = np.array([0.0 for _ in range(len(p_interp))])
-        return p_interp, vn_interp, err_interp
-    bin_centers_valid = bin_centers[valid]
-    vn_valid = vn_vals[valid]
-    err_valid = err_vals[valid]
-    f_vn = interp1d(
-        bin_centers_valid,
-        vn_valid,
-        kind="linear",
-        fill_value="extrapolate",
-        bounds_error=False,
-    )
-    f_err = interp1d(
-        bin_centers_valid,
-        err_valid,
-        kind="linear",
-        fill_value="extrapolate",
-        bounds_error=False,
-    )
-    p_interp = np.linspace(pt_min, pt_max, n_interp)
-    vn_interp = f_vn(p_interp)
-    err_interp = f_err(p_interp)
-    return p_interp, vn_interp, err_interp
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.use_deterministic_algorithms(True, warn_only=True)
 
 
 def get_masked_pt(p, pt_min=0.2, pt_max=None, eta_max=1.0):
-    """
-    Function for calculating transverse momenta with mask.
-    Parameters:
-    - p - particles momenta;
-    - pt_min - minimal value of transverse momentum;
-    - pt_max - maximum value of transverse momentum;
-    - eta_max - maximum value of pseudorapidity.
-    Return:
-    - mask - mask depending on pt_min, pt_max amd eta_max;
-    - pt - transverse momenta tensor.
-    """
     px, py, pz = p[..., 0], p[..., 1], p[..., 2]
     pt = torch.sqrt(px**2 + py**2)
     p_total = torch.sqrt(pt**2 + pz**2)
@@ -118,17 +30,7 @@ def get_masked_pt(p, pt_min=0.2, pt_max=None, eta_max=1.0):
     return mask, pt
 
 
-def calc_pt_dist(data, pt_min=0.0, pt_max=2.0, eta_max=10.0):
-    """
-    Function for calculating transverse momenta distribution.
-    Parameters:
-    - data - particles momenta;
-    - pt_min - minimal value of transverse momentum;
-    - pt_max - maximum value of transverse momentum;
-    - eta_max - maximum value of pseudorapidity.
-    Return:
-    - tensor of selected transverse momenta
-    """
+def calc_pt_dist(data, pt_min=0.0, pt_max=1.2, eta_max=10.0):
     pt_list = []
     for event in data:
         mask, pt_event = get_masked_pt(event, pt_min, pt_max, eta_max)
@@ -144,30 +46,12 @@ def calc_pt_dist(data, pt_min=0.0, pt_max=2.0, eta_max=10.0):
 
 
 def kl_divergence(real_kde, fake_kde, x, eps=1e-12):
-    """
-    Function for calculating KL divergence.
-    Parameters:
-    - real_kde - KDE of real data;
-    - fake_kde - KDE of generated data;
-    - x - points;
-    - eps - for numeric stability.
-    Return:
-    - KL divergence value
-    """
     p = real_kde.evaluate(x)
     q = fake_kde.evaluate(x)
     return simpson(p * np.log((p + eps) / (q + eps)), x)
 
 
 def w2_distance_1d(real, fake):
-    """
-    Function for calculating W2 distance.
-    Parameters:
-    - real_values - real data;
-    - fake_values - generated data.
-    Return:
-    - W2 distance depending on data lengths
-    """
     real_sorted = np.sort(real)
     fake_sorted = np.sort(fake)
     if len(real_sorted) != len(fake_sorted):
@@ -180,28 +64,10 @@ def w2_distance_1d(real, fake):
 
 
 def calc_energy(px, py, pz, masses):
-    """
-    Fucntion for calculating energies of particles (using momenta and masses).
-    Parameters:
-    - px - x momenta component;
-    - py - y momenta component;
-    - pz - z moment component;
-    - masses - tensor of particles masses.
-    Return:
-    - tensor of particles energies
-    """
     return torch.sqrt(px**2 + py**2 + pz**2 + masses**2)
 
 
 def calc_m_inv(row, mass_number=131):
-    """
-    Function for calculating invariant mass per nucleon.
-    Parameters:
-    - row - row of ROOT data DataFrame;
-    - mass_number - mass number of colliding nuclei.
-    Return:
-    - invariant mass per nucleon
-    """
     energy = np.sum(row["fParticles.fE"])
     px = np.sum(row["fParticles.fPx"])
     py = np.sum(row["fParticles.fPy"])
@@ -211,15 +77,6 @@ def calc_m_inv(row, mass_number=131):
 
 
 def select_particles(row, target_col, mask_cols):
-    """
-    Function for selecting particles using mask.
-    Parameters:
-    - row - row of ROOT data DataFrame;
-    - target_col - column of selecting data;
-    - mask_cols - columns for mask.
-    Return:
-    - selected values
-    """
     feature_arr = np.array(row[target_col])
     mask_arr = np.zeros_like(feature_arr)
     for col in mask_cols:
@@ -228,44 +85,19 @@ def select_particles(row, target_col, mask_cols):
 
 
 def calc_pseudorapidity(px=None, py=None, pz=None, eps=1e-5):
-    """
-    Fucntion for calculating pseudorapidity.
-    Parameters:
-    - px - momenta x component;
-    - py - momenta y component;
-    - pz - momenta z component;
-    - eps - for numeric stability.
-    Return:
-    - pseudorapidity array
-    """
-    norm = np.sqrt(px**2 + py**2 + pz**2)
-    return 0.5 * np.log(eps + (norm + pz) / (eps + norm - pz))
+    if isinstance(px, torch.Tensor):
+        norm = torch.sqrt(px**2 + py**2 + pz**2)
+        return 0.5 * torch.log(eps + (norm + pz) / (eps + norm - pz))
+    else:
+        norm = np.sqrt(px**2 + py**2 + pz**2)
+        return 0.5 * np.log(eps + (norm + pz) / (eps + norm - pz))
 
 
 def calc_pT(px, py):
-    """
-    Fucntion for calculating transverse momenta.
-    Parameters:
-    - px - momenta x component;
-    - py - momenta y component.
-    Return:
-    - transverse momenta array
-    """
     return np.sqrt(px**2 + py**2)
 
 
 def calc_flows(px, py, weights=None):
-    """
-    Function for calculating v1, v2, v3 flows.
-    Parameters:
-    - px - momenta x component;
-    - py - momenta y component;
-    - weights - for vn correction.
-    Return:
-    - v1 flow;
-    - v2 flow;
-    -v3 flow
-    """
     phi = np.arctan2(py, px)
     n = len(phi)
     w = np.ones(n) if weights is None else weights
@@ -276,58 +108,23 @@ def calc_flows(px, py, weights=None):
     return v1, v2, v3
 
 
-def get_nucleons_by_type(px, py, pz, part_type="spectators", threshold=2.0):
-    """
-    Function for creating spectators or participants mask (using pseudorapidity).
-    Parameters:
-    - px - momenta x component;
-    - py - momenta y component;
-    - pz - momenta z component;
-    - part_type - spectators or participants;
-    - threshold - for separating spectators and participants.
-    Return:
-    - nucleons mask
-    """
-    eta = calc_pseudorapidity(px, py, pz)
+def get_nucleons_by_type(status, part_type="spectators"):
     if part_type == "spectators":
-        return eta > threshold
+        return status == 0
     else:
-        return eta <= threshold
+        return status != 0
 
 
 def get_part_spec(row, target_col, part_type="spectators"):
-    """
-    Function for selecting nucleons features depending on type.
-    Parameters:
-    - row - row of ROOT data DataFrame;
-    - target_col - target particles features;
-    - part_type - spectators or participants.
-    Return:
-    - selected features
-    """
     nucleon_mask = np.array(row[N]) | np.array(row[P])
     nucleon_indices = np.where(nucleon_mask)[0]
-    px = np.array(row["fParticles.fPx"])[nucleon_indices]
-    py = np.array(row["fParticles.fPy"])[nucleon_indices]
-    pz = np.array(row["fParticles.fPz"])[nucleon_indices]
-    type_mask = get_nucleons_by_type(px, py, pz, part_type)
+    status = np.array(row["fParticles.fStatus"])[nucleon_indices]
+    type_mask = get_nucleons_by_type(status, part_type)
     selected_indices = nucleon_indices[type_mask]
     return np.array(row[target_col])[selected_indices]
 
 
 def get_final_moms(mom_x, mom_y, mom_z, energy, max_size):
-    """
-    Function for preprocessing particles momenta.
-    Parameters:
-    - mom_x - momenta x component;
-    - mom_y - momenta y component;
-    - mom_z - momenta z component;
-    - energy - partclies energies;
-    - max_size - maximum length of particles sequences.
-    Return:
-    - mom_merged - padded momenergy;
-    - mask - padding mask
-    """
     if mom_x.shape[0] >= max_size:
         mask = np.ones(max_size, dtype=float)
         mom_x = mom_x[:max_size]
@@ -351,19 +148,6 @@ def get_final_moms(mom_x, mom_y, mom_z, energy, max_size):
 
 
 def preprocess_urqmd(urqmd, max_size_t=80, max_size_c=250, return_cols=False):
-    """
-    Function for preprocessing ROOT dataset.
-    Parameters:
-    - urqmd - ROOT dataset;
-    - max_size_t - maximum length of target "other" particles sequences;
-    - max_size_c - maximum length of nucleons sequences;
-    - return cols - flag if condition columns names is needed.
-    Return:
-    - df - preprocessed DataFrame;
-    - cond_cols - external colition columns names;
-    - nucleons_cols - nucleons padded features columns names;
-    - nucleons_mask_cols - nucleons padding mask columns names
-    """
     urqmd_new = pd.DataFrame()
     if "fB" in urqmd.columns:
         urqmd_new["B"] = urqmd["fB"]
@@ -454,7 +238,7 @@ def preprocess_urqmd(urqmd, max_size_t=80, max_size_c=250, return_cols=False):
     for col in ["psi1", "psi2", "mom_T", "phi"]:
         if col in urqmd_new.columns:
             urqmd_new.drop(columns=col, inplace=True)
-    cond_cols = ["B", "v1", "v2", "v3"]
+    cond_cols = ["B"]
     urqmd[cond_cols] = urqmd_new[cond_cols]
     for p in particles:
         for d in directions:
@@ -481,10 +265,20 @@ def preprocess_urqmd(urqmd, max_size_t=80, max_size_c=250, return_cols=False):
                 if bc == "nuclei":
                     continue
                 baryon_mom_merged, baryon_mask = get_final_moms(
-                    mom_x, mom_y, mom_z, energy, max_size_c
+                    row[f"{bc}_mom_x"],
+                    row[f"{bc}_mom_y"],
+                    row[f"{bc}_mom_z"],
+                    row[f"{bc}_energy"],
+                    max_size_c,
                 )
                 cond[f"{bc}_moms"] = baryon_mom_merged
                 cond[f"{bc}_mask"] = baryon_mask
+            cond["nucleons_moms"] = np.concatenate(
+                [cond["2112_moms"], cond["2212_moms"]], axis=0
+            )
+            cond["nucleons_mask"] = np.concatenate(
+                [cond["2112_mask"], cond["2212_mask"]], axis=0
+            )
             target_mom_merged, target_mask = get_final_moms(
                 mom_x, mom_y, mom_z, energy, max_size_t
             )
@@ -495,5 +289,68 @@ def preprocess_urqmd(urqmd, max_size_t=80, max_size_c=250, return_cols=False):
             df_rows.append(cond)
     df = pd.DataFrame(df_rows)
     if return_cols:
-        return df, cond_cols, nucleons_cols, nucleons_mask_cols
+        return df, cond_cols, ["nucleons_moms"], ["nucleons_mask"]
     return df
+
+
+def calc_vn_vs_pt(
+    data, pt_min, pt_max, eta_max, nbins, n, min_particles=15, n_interp=200
+):
+    pt_all, phi_all = [], []
+    for event in data:
+        if isinstance(event, torch.Tensor):
+            event = event.cpu().numpy()
+        px = event[..., 0]
+        py = event[..., 1]
+        pz = event[..., 2]
+        pt = np.sqrt(px**2 + py**2)
+        p_total = np.sqrt(pt**2 + pz**2)
+        eta = 0.5 * np.log((p_total + pz) / (p_total - pz + 1e-10))
+        mask = (pt > pt_min) & (pt < pt_max) & (np.abs(eta) < eta_max)
+        pt_all.extend(pt[mask])
+        phi_all.extend(np.arctan2(py[mask], px[mask]))
+    pt_all = np.array(pt_all)
+    phi_all = np.array(phi_all)
+    bin_edges = np.linspace(pt_min, pt_max, nbins + 1)
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+    vn_vals = np.full(nbins, np.nan)
+    err_vals = np.full(nbins, np.nan)
+    for i in range(nbins):
+        mask_bin = (pt_all >= bin_edges[i]) & (pt_all < bin_edges[i + 1])
+        count = np.sum(mask_bin)
+        if count >= min_particles:
+            cos_nphi = np.cos(n * phi_all[mask_bin])
+            vn_vals[i] = np.mean(cos_nphi)
+            err_vals[i] = np.std(cos_nphi) / np.sqrt(count)
+    p_interp = np.linspace(pt_min, pt_max, n_interp)
+    valid = ~np.isnan(vn_vals)
+    if np.sum(valid) < 2:
+        vn_interp = np.zeros_like(p_interp)
+        err_interp = np.full_like(p_interp, 1.0)
+        is_interp = np.ones_like(p_interp, dtype=bool)
+        return p_interp, vn_interp, err_interp, is_interp
+    f_vn = interp1d(
+        bin_centers[valid],
+        vn_vals[valid],
+        kind="linear",
+        fill_value="extrapolate",
+        bounds_error=False,
+    )
+    f_err = interp1d(
+        bin_centers[valid],
+        err_vals[valid],
+        kind="linear",
+        fill_value="extrapolate",
+        bounds_error=False,
+    )
+    vn_interp = f_vn(p_interp)
+    err_interp = f_err(p_interp)
+    bin_width = bin_edges[1] - bin_edges[0]
+    is_interp = np.ones_like(p_interp, dtype=bool)
+    for j, p_j in enumerate(p_interp):
+        dist = np.min(np.abs(bin_centers[valid] - p_j))
+        if dist <= bin_width * 0.6:
+            is_interp[j] = False
+    mean_err = np.nanmean(err_vals[valid])
+    err_interp[is_interp] = np.maximum(err_interp[is_interp], 2.0 * mean_err)
+    return p_interp, vn_interp, err_interp, is_interp
