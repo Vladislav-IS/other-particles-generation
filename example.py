@@ -18,7 +18,7 @@ def main():
     warnings.filterwarnings("ignore")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-
+    batch_size = 128
     latent_dim = 32
     latent_local_dim = 32
     hid_dim = 64
