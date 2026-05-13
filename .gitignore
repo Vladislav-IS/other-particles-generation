@@ -215,3 +215,4 @@ tensorboard/
 mlflow/
 csv_logs/
 checkpoints/
+*.root
