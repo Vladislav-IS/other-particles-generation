@@ -32,6 +32,7 @@ def main():
     n_heads = 8
     d_iters = 1
     epochs = 70
+    METRICS = {}
 
     if not os.path.exists("xexe_eos_1_bmn.root"):
         gdown.download(
