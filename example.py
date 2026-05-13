@@ -27,7 +27,7 @@ def main():
     num_layers_gen = 5
     num_layers_disc = 5
     lr = 1e-4
-    betas = (0.5, 0.999)    
+    betas = (0.5, 0.999)
     n_modes = 3
     n_heads = 8
     d_iters = 1
