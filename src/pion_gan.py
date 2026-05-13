@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn.utils import weight_norm
-from src.gaussian_mixture import LearnableMixtureLatent, FixedMixtureLatent
+from src.gaussian_mixture import LearnableMixtureLatent, StandardNormalLatent
 
 
 class TransformerBlock(nn.Module):
@@ -59,7 +59,7 @@ class TransformerBlock(nn.Module):
         return x_local
 
 
-class EPiC_Transformer_Generator(nn.Module):
+class Pion_Gan_Generator(nn.Module):
     """
     EPiC transformer generator
     """
@@ -144,12 +144,12 @@ class EPiC_Transformer_Generator(nn.Module):
         self.local_sampler = (
             LearnableMixtureLatent(n_modes, latent_local, max_len)
             if use_learnable_noise
-            else FixedMixtureLatent(n_modes, latent_local, max_len=max_len)
+            else StandardNormalLatent(latent_local, max_len=max_len)
         )
         self.global_sampler = (
             LearnableMixtureLatent(n_modes, latent_global)
             if use_learnable_noise
-            else FixedMixtureLatent(n_modes, latent_global)
+            else StandardNormalLatent(latent_global)
         )
 
     def _init_weights(self, module):
@@ -190,7 +190,7 @@ class EPiC_Transformer_Generator(nn.Module):
         return impulses, mask
 
 
-class EPiC_Transformer_Discriminator(nn.Module):
+class Pion_Gan_Discriminator(nn.Module):
     """
     EPiC transformer discriminator
     """

@@ -1,0 +1,313 @@
+,model,seed,b,pion,metric,value
+0,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,e_kl,0.03765109513876491
+1,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,e_w1,0.049337658903428484
+2,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,eta_kl,0.002231028437601742
+3,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,eta_w1,0.02319293117691164
+4,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,e_kl_0,0.2131597193924557
+5,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,e_w1_0,0.08756106585264208
+6,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,eta_kl_0,0.04964878150299078
+7,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,eta_w1_0,0.19596552731702105
+8,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,v1,0.00469537691157596
+9,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,v2,0.006977395194310513
+10,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,v3,0.004399180883588821
+11,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,pt,10.955
+12,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,211,e,9.79
+13,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,e_kl,0.04984495965874029
+14,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,e_w1,0.060831244988810464
+15,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,eta_kl,0.005155846277804654
+16,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,eta_w1,0.0323333236382955
+17,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,e_kl_0,0.14284754446592893
+18,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,e_w1_0,0.09336626380681992
+19,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,eta_kl_0,0.014034531314464308
+20,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,eta_w1_0,0.19280479019042107
+21,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,v1,0.003988212018073404
+22,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,v2,0.014466556865055637
+23,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,v3,0.0031301905970229143
+24,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,pt,10.955
+25,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,-211,e,9.79
+26,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,e_kl,0.052564268460556424
+27,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,e_w1,0.07432734203125749
+28,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,eta_kl,0.004482398901775784
+29,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,eta_w1,0.03736108827886448
+30,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,e_kl_0,0.15344353027350993
+31,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,e_w1_0,0.15406608670949934
+32,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,eta_kl_0,0.019809851499059564
+33,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,eta_w1_0,0.12055818215078036
+34,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,v1,0.011983991388479949
+35,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,v2,0.007106297954601183
+36,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,v3,0.02205937779385162
+37,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,pt,10.955
+38,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,1.7,111,e,9.79
+39,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,e_kl,0.03602161607669567
+40,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,e_w1,0.04195717545627565
+41,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,eta_kl,0.005462712860080108
+42,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,eta_w1,0.07047999544051027
+43,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,e_kl_0,0.13851663391083624
+44,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,e_w1_0,0.11479050904512407
+45,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,eta_kl_0,0.07670489166709674
+46,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,eta_w1_0,0.17904186208732426
+47,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,v1,0.01890916119536981
+48,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,v2,0.05403310482228292
+49,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,v3,0.09602490870508298
+50,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,pt,9.75
+51,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,211,e,8.315
+52,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,e_kl,0.050337046927102794
+53,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,e_w1,0.05709128946381273
+54,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,eta_kl,0.004665367870403306
+55,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,eta_w1,0.03494224079479156
+56,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,e_kl_0,0.07364980506663012
+57,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,e_w1_0,0.08979874163866042
+58,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,eta_kl_0,0.019510491031277694
+59,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,eta_w1_0,0.16126659376779573
+60,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,v1,0.08030662526749964
+61,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,v2,0.01082526819921954
+62,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,v3,0.008930031151315293
+63,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,pt,9.75
+64,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,-211,e,8.315
+65,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,e_kl,0.049623432926576394
+66,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,e_w1,0.05574557554392025
+67,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,eta_kl,0.0034915362649546315
+68,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,eta_w1,0.028946428937795976
+69,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,e_kl_0,0.16011340351352163
+70,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,e_w1_0,0.13333178222179412
+71,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,eta_kl_0,-0.0006736790859398648
+72,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,eta_w1_0,0.1209489482291974
+73,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,v1,0.054302920288359896
+74,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,v2,0.02548648435336972
+75,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,v3,0.017270860603043708
+76,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,pt,9.75
+77,B_v1_v2_v3_energy_part_mean_pseudorapidity_part_mean_mom_T_part_mean_energy_part_var_pseudorapidity_part_var_mom_T_part_var,61453,5.0,111,e,8.315
+78,B_v1_v2_v3,61453,1.7,211,e_kl,0.0650837811132654
+79,B_v1_v2_v3,61453,1.7,211,e_w1,0.05894596442580223
+80,B_v1_v2_v3,61453,1.7,211,eta_kl,0.0032053490739854737
+81,B_v1_v2_v3,61453,1.7,211,eta_w1,0.02938992237219021
+82,B_v1_v2_v3,61453,1.7,211,e_kl_0,0.39862568460471565
+83,B_v1_v2_v3,61453,1.7,211,e_w1_0,0.15549257010221484
+84,B_v1_v2_v3,61453,1.7,211,eta_kl_0,0.03942689032281211
+85,B_v1_v2_v3,61453,1.7,211,eta_w1_0,0.17473270586167927
+86,B_v1_v2_v3,61453,1.7,211,v1,0.04345541510282544
+87,B_v1_v2_v3,61453,1.7,211,v2,0.002229144563754731
+88,B_v1_v2_v3,61453,1.7,211,v3,0.015397943451124482
+89,B_v1_v2_v3,61453,1.7,211,pt,11.725
+90,B_v1_v2_v3,61453,1.7,211,e,11.1675
+91,B_v1_v2_v3,61453,1.7,-211,e_kl,0.06165355385611118
+92,B_v1_v2_v3,61453,1.7,-211,e_w1,0.06511253260076047
+93,B_v1_v2_v3,61453,1.7,-211,eta_kl,0.004236179677706465
+94,B_v1_v2_v3,61453,1.7,-211,eta_w1,0.037895290703406026
+95,B_v1_v2_v3,61453,1.7,-211,e_kl_0,0.17400523604496418
+96,B_v1_v2_v3,61453,1.7,-211,e_w1_0,0.12258831053972244
+97,B_v1_v2_v3,61453,1.7,-211,eta_kl_0,0.0856810792388883
+98,B_v1_v2_v3,61453,1.7,-211,eta_w1_0,0.18888915555318814
+99,B_v1_v2_v3,61453,1.7,-211,v1,0.00977077248468967
+100,B_v1_v2_v3,61453,1.7,-211,v2,0.04630788263310543
+101,B_v1_v2_v3,61453,1.7,-211,v3,0.0030726797003440675
+102,B_v1_v2_v3,61453,1.7,-211,pt,11.725
+103,B_v1_v2_v3,61453,1.7,-211,e,11.1675
+104,B_v1_v2_v3,61453,1.7,111,e_kl,0.07597131981440351
+105,B_v1_v2_v3,61453,1.7,111,e_w1,0.07963523667837892
+106,B_v1_v2_v3,61453,1.7,111,eta_kl,0.0030833127542705036
+107,B_v1_v2_v3,61453,1.7,111,eta_w1,0.03042240369449808
+108,B_v1_v2_v3,61453,1.7,111,e_kl_0,0.23006725427059632
+109,B_v1_v2_v3,61453,1.7,111,e_w1_0,0.17708990499377253
+110,B_v1_v2_v3,61453,1.7,111,eta_kl_0,0.024820097003853424
+111,B_v1_v2_v3,61453,1.7,111,eta_w1_0,0.20035089992386929
+112,B_v1_v2_v3,61453,1.7,111,v1,0.08890749076340429
+113,B_v1_v2_v3,61453,1.7,111,v2,0.0037743462489944393
+114,B_v1_v2_v3,61453,1.7,111,v3,0.0050894341827202715
+115,B_v1_v2_v3,61453,1.7,111,pt,11.725
+116,B_v1_v2_v3,61453,1.7,111,e,11.1675
+117,B_v1_v2_v3,61453,5.0,211,e_kl,0.058093752716971696
+118,B_v1_v2_v3,61453,5.0,211,e_w1,0.05672324983935009
+119,B_v1_v2_v3,61453,5.0,211,eta_kl,0.003479970668483697
+120,B_v1_v2_v3,61453,5.0,211,eta_w1,0.038276905968593414
+121,B_v1_v2_v3,61453,5.0,211,e_kl_0,0.13520628933448206
+122,B_v1_v2_v3,61453,5.0,211,e_w1_0,0.11564867138862611
+123,B_v1_v2_v3,61453,5.0,211,eta_kl_0,0.014222539033030253
+124,B_v1_v2_v3,61453,5.0,211,eta_w1_0,0.14516096758576166
+125,B_v1_v2_v3,61453,5.0,211,v1,0.05774190576738074
+126,B_v1_v2_v3,61453,5.0,211,v2,0.004921098400817189
+127,B_v1_v2_v3,61453,5.0,211,v3,0.13730158819359248
+128,B_v1_v2_v3,61453,5.0,211,pt,10.4375
+129,B_v1_v2_v3,61453,5.0,211,e,8.9875
+130,B_v1_v2_v3,61453,5.0,-211,e_kl,0.0712030632673524
+131,B_v1_v2_v3,61453,5.0,-211,e_w1,0.059782547259197474
+132,B_v1_v2_v3,61453,5.0,-211,eta_kl,0.004926798002799325
+133,B_v1_v2_v3,61453,5.0,-211,eta_w1,0.040090822255797645
+134,B_v1_v2_v3,61453,5.0,-211,e_kl_0,0.13074899438893894
+135,B_v1_v2_v3,61453,5.0,-211,e_w1_0,0.11605916142463685
+136,B_v1_v2_v3,61453,5.0,-211,eta_kl_0,0.03305723275951759
+137,B_v1_v2_v3,61453,5.0,-211,eta_w1_0,0.1319532639044337
+138,B_v1_v2_v3,61453,5.0,-211,v1,0.01682473866897364
+139,B_v1_v2_v3,61453,5.0,-211,v2,0.017223344346642862
+140,B_v1_v2_v3,61453,5.0,-211,v3,0.0106450732934915
+141,B_v1_v2_v3,61453,5.0,-211,pt,10.4375
+142,B_v1_v2_v3,61453,5.0,-211,e,8.9875
+143,B_v1_v2_v3,61453,5.0,111,e_kl,0.07466564560497228
+144,B_v1_v2_v3,61453,5.0,111,e_w1,0.06291981688450637
+145,B_v1_v2_v3,61453,5.0,111,eta_kl,0.006881516248405133
+146,B_v1_v2_v3,61453,5.0,111,eta_w1,0.03582346297622823
+147,B_v1_v2_v3,61453,5.0,111,e_kl_0,0.22695186240913715
+148,B_v1_v2_v3,61453,5.0,111,e_w1_0,0.13015748038887975
+149,B_v1_v2_v3,61453,5.0,111,eta_kl_0,0.007923891391142805
+150,B_v1_v2_v3,61453,5.0,111,eta_w1_0,0.1104464487521909
+151,B_v1_v2_v3,61453,5.0,111,v1,0.004557148844097215
+152,B_v1_v2_v3,61453,5.0,111,v2,0.017586693549236733
+153,B_v1_v2_v3,61453,5.0,111,v3,0.01240726846704542
+154,B_v1_v2_v3,61453,5.0,111,pt,10.4375
+155,B_v1_v2_v3,61453,5.0,111,e,8.9875
+156,no condition,61453,1.7,211,e_kl,0.04311786777116575
+157,no condition,61453,1.7,211,e_w1,0.04405252910795665
+158,no condition,61453,1.7,211,eta_kl,0.0020284320569228954
+159,no condition,61453,1.7,211,eta_w1,0.025173563384255426
+160,no condition,61453,1.7,211,e_kl_0,0.40638561084230357
+161,no condition,61453,1.7,211,e_w1_0,0.12752318978309635
+162,no condition,61453,1.7,211,eta_kl_0,0.09038461225471103
+163,no condition,61453,1.7,211,eta_w1_0,0.2864863083107412
+164,no condition,61453,1.7,211,v1,0.025357157261721074
+165,no condition,61453,1.7,211,v2,0.03253041782427632
+166,no condition,61453,1.7,211,v3,0.006061943991181989
+167,no condition,61453,1.7,211,pt,10.864999999999998
+168,no condition,61453,1.7,211,e,8.235
+169,no condition,61453,1.7,-211,e_kl,0.03651771155344739
+170,no condition,61453,1.7,-211,e_w1,0.05413714876487143
+171,no condition,61453,1.7,-211,eta_kl,0.004575191673607004
+172,no condition,61453,1.7,-211,eta_w1,0.03322173722484881
+173,no condition,61453,1.7,-211,e_kl_0,0.1819591963487724
+174,no condition,61453,1.7,-211,e_w1_0,0.12880456417798997
+175,no condition,61453,1.7,-211,eta_kl_0,0.012508749113588428
+176,no condition,61453,1.7,-211,eta_w1_0,0.1195442841784097
+177,no condition,61453,1.7,-211,v1,0.056605803296923954
+178,no condition,61453,1.7,-211,v2,0.0731285171414786
+179,no condition,61453,1.7,-211,v3,0.008382584171999741
+180,no condition,61453,1.7,-211,pt,10.864999999999998
+181,no condition,61453,1.7,-211,e,8.235
+182,no condition,61453,1.7,111,e_kl,0.05224412709032992
+183,no condition,61453,1.7,111,e_w1,0.06565551201147693
+184,no condition,61453,1.7,111,eta_kl,0.0027680892293437944
+185,no condition,61453,1.7,111,eta_w1,0.03716005555351809
+186,no condition,61453,1.7,111,e_kl_0,0.14513614583199777
+187,no condition,61453,1.7,111,e_w1_0,0.11909198701381685
+188,no condition,61453,1.7,111,eta_kl_0,0.017727554133569776
+189,no condition,61453,1.7,111,eta_w1_0,0.11526455108840312
+190,no condition,61453,1.7,111,v1,0.01086297778582935
+191,no condition,61453,1.7,111,v2,0.006366650721406517
+192,no condition,61453,1.7,111,v3,0.026541658393843717
+193,no condition,61453,1.7,111,pt,10.864999999999998
+194,no condition,61453,1.7,111,e,8.235
+195,no condition,61453,5.0,211,e_kl,0.015077218766600278
+196,no condition,61453,5.0,211,e_w1,0.015423636284246232
+197,no condition,61453,5.0,211,eta_kl,0.0022512802608057646
+198,no condition,61453,5.0,211,eta_w1,0.032114403108719936
+199,no condition,61453,5.0,211,e_kl_0,0.04056356284328147
+200,no condition,61453,5.0,211,e_w1_0,0.0646451187133789
+201,no condition,61453,5.0,211,eta_kl_0,0.010001770564974203
+202,no condition,61453,5.0,211,eta_w1_0,0.15161197598092258
+203,no condition,61453,5.0,211,v1,0.005961906385165872
+204,no condition,61453,5.0,211,v2,0.004701488739185253
+205,no condition,61453,5.0,211,v3,0.03403409095221434
+206,no condition,61453,5.0,211,pt,2.1174999999999997
+207,no condition,61453,5.0,211,e,2.2074999999999996
+208,no condition,61453,5.0,-211,e_kl,0.01933025504978141
+209,no condition,61453,5.0,-211,e_w1,0.018406518875311445
+210,no condition,61453,5.0,-211,eta_kl,0.0036780251253942533
+211,no condition,61453,5.0,-211,eta_w1,0.0289537963030889
+212,no condition,61453,5.0,-211,e_kl_0,0.012758897706823622
+213,no condition,61453,5.0,-211,e_w1_0,0.018434597104787828
+214,no condition,61453,5.0,-211,eta_kl_0,0.026779712025271647
+215,no condition,61453,5.0,-211,eta_w1_0,0.2070164742740599
+216,no condition,61453,5.0,-211,v1,0.009932235839504271
+217,no condition,61453,5.0,-211,v2,0.020031552271434806
+218,no condition,61453,5.0,-211,v3,0.006094894038308001
+219,no condition,61453,5.0,-211,pt,2.1174999999999997
+220,no condition,61453,5.0,-211,e,2.2074999999999996
+221,no condition,61453,5.0,111,e_kl,0.021101987922961387
+222,no condition,61453,5.0,111,e_w1,0.022338217531184115
+223,no condition,61453,5.0,111,eta_kl,0.003041583537693682
+224,no condition,61453,5.0,111,eta_w1,0.02185459672613304
+225,no condition,61453,5.0,111,e_kl_0,0.014044298589234798
+226,no condition,61453,5.0,111,e_w1_0,0.040697926282882685
+227,no condition,61453,5.0,111,eta_kl_0,0.01869057399132317
+228,no condition,61453,5.0,111,eta_w1_0,0.09841492278268563
+229,no condition,61453,5.0,111,v1,0.003502612723050356
+230,no condition,61453,5.0,111,v2,0.014455210377326964
+231,no condition,61453,5.0,111,v3,0.024262708012902433
+232,no condition,61453,5.0,111,pt,2.1174999999999997
+233,no condition,61453,5.0,111,e,2.2074999999999996
+234,B,61453,1.7,211,e_kl,0.02449508082355851
+235,B,61453,1.7,211,e_w1,0.02603851292104948
+236,B,61453,1.7,211,eta_kl,0.002551272293018024
+237,B,61453,1.7,211,eta_w1,0.027362792141170093
+238,B,61453,1.7,211,e_kl_0,0.2523374374409545
+239,B,61453,1.7,211,e_w1_0,0.06768659442663194
+240,B,61453,1.7,211,eta_kl_0,0.027790197969734146
+241,B,61453,1.7,211,eta_w1_0,0.11304887663747651
+242,B,61453,1.7,211,v1,0.01268164375273328
+243,B,61453,1.7,211,v2,0.012966489555288474
+244,B,61453,1.7,211,v3,0.00236528508337642
+245,B,61453,1.7,211,pt,6.405
+246,B,61453,1.7,211,e,5.3675
+247,B,61453,1.7,-211,e_kl,0.023043312065913375
+248,B,61453,1.7,-211,e_w1,0.031393729838587
+249,B,61453,1.7,-211,eta_kl,0.005823610487303757
+250,B,61453,1.7,-211,eta_w1,0.02756518644277615
+251,B,61453,1.7,-211,e_kl_0,0.058144589477939636
+252,B,61453,1.7,-211,e_w1_0,0.05446803718805314
+253,B,61453,1.7,-211,eta_kl_0,0.005854611106933444
+254,B,61453,1.7,-211,eta_w1_0,0.12708147177938373
+255,B,61453,1.7,-211,v1,0.004320806598334255
+256,B,61453,1.7,-211,v2,0.004068017499607015
+257,B,61453,1.7,-211,v3,0.002103504329942693
+258,B,61453,1.7,-211,pt,6.405
+259,B,61453,1.7,-211,e,5.3675
+260,B,61453,1.7,111,e_kl,0.023187191511789235
+261,B,61453,1.7,111,e_w1,0.04493809125607922
+262,B,61453,1.7,111,eta_kl,0.002992047884825211
+263,B,61453,1.7,111,eta_w1,0.025938454843010165
+264,B,61453,1.7,111,e_kl_0,0.06632557082638976
+265,B,61453,1.7,111,e_w1_0,0.09373896151781083
+266,B,61453,1.7,111,eta_kl_0,0.016291060710344574
+267,B,61453,1.7,111,eta_w1_0,0.127206808907722
+268,B,61453,1.7,111,v1,0.016266543244473033
+269,B,61453,1.7,111,v2,0.05621402096108431
+270,B,61453,1.7,111,v3,0.04412575071689997
+271,B,61453,1.7,111,pt,6.405
+272,B,61453,1.7,111,e,5.3675
+273,B,61453,5.0,211,e_kl,0.007356094297949447
+274,B,61453,5.0,211,e_w1,0.02012682646954131
+275,B,61453,5.0,211,eta_kl,0.0032194553703606657
+276,B,61453,5.0,211,eta_w1,0.051408684002429095
+277,B,61453,5.0,211,e_kl_0,0.014856816938485425
+278,B,61453,5.0,211,e_w1_0,0.05950493484735489
+279,B,61453,5.0,211,eta_kl_0,0.01704384162345602
+280,B,61453,5.0,211,eta_w1_0,0.16100450857542456
+281,B,61453,5.0,211,v1,0.014947911877271673
+282,B,61453,5.0,211,v2,0.008997980332541143
+283,B,61453,5.0,211,v3,0.025868225970356703
+284,B,61453,5.0,211,pt,5.7275
+285,B,61453,5.0,211,e,4.1825
+286,B,61453,5.0,-211,e_kl,0.0210508528899907
+287,B,61453,5.0,-211,e_w1,0.027801342301438214
+288,B,61453,5.0,-211,eta_kl,0.005607384081966124
+289,B,61453,5.0,-211,eta_w1,0.037049169474906433
+290,B,61453,5.0,-211,e_kl_0,0.02136533811216685
+291,B,61453,5.0,-211,e_w1_0,0.025535405576229093
+292,B,61453,5.0,-211,eta_kl_0,0.02140933820685624
+293,B,61453,5.0,-211,eta_w1_0,0.14202752040757333
+294,B,61453,5.0,-211,v1,0.018535904063836647
+295,B,61453,5.0,-211,v2,0.0014268880804354205
+296,B,61453,5.0,-211,v3,0.009439927892353409
+297,B,61453,5.0,-211,pt,5.7275
+298,B,61453,5.0,-211,e,4.1825
+299,B,61453,5.0,111,e_kl,0.025363458740920993
+300,B,61453,5.0,111,e_w1,0.030849620007488764
+301,B,61453,5.0,111,eta_kl,0.0035197373858876714
+302,B,61453,5.0,111,eta_w1,0.03497235969880724
+303,B,61453,5.0,111,e_kl_0,0.08644480647256125
+304,B,61453,5.0,111,e_w1_0,0.08444087833166122
+305,B,61453,5.0,111,eta_kl_0,0.014873597265382014
+306,B,61453,5.0,111,eta_w1_0,0.12251439803047105
+307,B,61453,5.0,111,v1,0.0455563583765216
+308,B,61453,5.0,111,v2,0.03418327254459544
+309,B,61453,5.0,111,v3,0.006524470628589798
+310,B,61453,5.0,111,pt,5.7275
+311,B,61453,5.0,111,e,4.1825

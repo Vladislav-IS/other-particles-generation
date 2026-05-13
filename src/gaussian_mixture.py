@@ -1,5 +1,5 @@
 import torch
-from torch import nn
+import torch.nn as nn
 
 
 class GaussianMixtureLatent(nn.Module):
@@ -55,36 +55,31 @@ class LearnableMixtureLatent(GaussianMixtureLatent):
         return mu_g + sigma_g * z
 
 
-class FixedMixtureLatent(GaussianMixtureLatent):
+class StandardNormalLatent(GaussianMixtureLatent):
     """
-    Gaussian mixture with fixed parameters
+    Standard normal distribution latent
     """
 
-    def __init__(self, n_modes, dim, param_scale=0.5, max_len=None):
+    def __init__(self, dim, max_len=None):
         """
         Parameters:
         - n_modes - number of Gaussian modes;
         - dim - latent dimensionality;
-        - param_scale - for distribution parameters (provides numeric stability);
+        - param_scale - for distribution parameters;
         - max_len - maximum number of particles in generating sequences
         """
-        super().__init__(n_modes=n_modes, dim=dim, max_len=max_len)
-        self.register_buffer("mu", param_scale * torch.randn(n_modes, dim))
-        self.register_buffer("sigma", param_scale * torch.rand(n_modes, dim))
-        self.register_buffer("weights", torch.ones(n_modes) / n_modes)
+        super().__init__(n_modes=1, dim=dim, max_len=max_len)
+        self.register_buffer("weights", torch.ones(1))
 
     def forward(self, batch_size):
         """
         Parameters:
         - batch_size
         """
-        comp_idx = torch.multinomial(self.weights, batch_size, replacement=True)
         if self.max_len is not None:
-            z = torch.randn(batch_size, self.max_len, self.d, device=self.mu.device)
-            mu_g = self.mu[comp_idx]
-            sigma_g = self.sigma[comp_idx]
-            return mu_g.unsqueeze(1) + sigma_g.unsqueeze(1) * z
-        z = torch.randn(batch_size, self.d, device=self.mu.device)
-        mu_g = self.mu[comp_idx]
-        sigma_g = self.sigma[comp_idx]
-        return mu_g + sigma_g * z
+            z = torch.randn(
+                batch_size, self.max_len, self.d, device=self.weights.device
+            )
+        else:
+            z = torch.randn(batch_size, self.d, device=self.weights.device)
+        return z

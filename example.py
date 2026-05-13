@@ -12,7 +12,7 @@ from src.calculations import preprocess_urqmd
 from src.config import *
 from src.training import train_epoch_transformer, train_and_test
 from src.inference import generate_transformer
-from src.epic_transformer import EPiC_Transformer_Discriminator, EPiC_Transformer_Generator
+from src.pion_gan import Pion_Gan_Discriminator, Pion_Gan_Generator
 
 
 if __name__ == "__main__":
