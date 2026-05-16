@@ -32,6 +32,25 @@ other-particles-generation/
 └── README.md                           # Описание проекта
 ```
 
+## Обучающие данные
+
+Обучающие данные находятся по общедоступным ссылкам Google Drive.
+
+UrQMD:
+```
+https://drive.google.com/uc?id=1EhDJ0DSe1AuHNRxUIbQV5r8AXo4TP8Kp
+```
+```
+https://drive.google.com/uc?id=1mBNT9X2qJRgRFHAhRIfv6kFSHQRnbZ4T
+```
+
+SMASH:
+```
+https://drive.google.com/uc?id=1BrMboOkpiwmMfJO0PStSxUmiLqWqYHi_
+```
+
+Примеры загрузки данных с помощью `gdown` содержатся в ipynb-файлах (папка `notebooks`) и `example.py`.
+
 ## Запуск кода
 
 1. Установка зависимостей: `pip install -r requirements.txt`.
