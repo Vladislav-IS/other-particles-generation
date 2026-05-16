@@ -363,7 +363,7 @@ def train_and_test(
     **kwargs,
 ):
     """
-    Overall training function
+    Overall training and inference function
     Parameters:
     - G - generator model;
     - D - discriminator model;
