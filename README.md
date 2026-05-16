@@ -36,10 +36,12 @@ other-particles-generation/
 
 Обучающие данные находятся по общедоступным ссылкам Google Drive.
 
-UrQMD:
+UrQMD ($b = 1.7$ фм):
 ```
 https://drive.google.com/uc?id=1EhDJ0DSe1AuHNRxUIbQV5r8AXo4TP8Kp
 ```
+
+UrQMD ($b = 5$ фм):
 ```
 https://drive.google.com/uc?id=1mBNT9X2qJRgRFHAhRIfv6kFSHQRnbZ4T
 ```
