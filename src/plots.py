@@ -15,6 +15,11 @@ from src.config import *
 
 
 def plot_losses(losses):
+    """
+    Plotting losses
+    Parameters:
+    - losses - dictionary {"loss type" : "value"}
+    """
     len_ = len(losses.keys())
     fig, ax = plt.subplots(nrows=1, ncols=len_, figsize=(3 * len_, 3))
     for j, k in enumerate(losses.keys()):
@@ -25,6 +30,18 @@ def plot_losses(losses):
 
 
 def plot_kde(real, fake, dim_names, part_type, num=None, show_plots=True):
+    """
+    Calculating and plotting distribution metrics (KL, W1, W2)
+    Parameters:
+    - real - real data;
+    - fake - fake data;
+    - dir_names - px, py, pz componenta names for plotting;
+    - part_type - type of target particles;
+    - num - number of selecting particles in sorted array (if None, metrics for all particles are calculated);
+    - show_plots - flag if plots will be shown
+    Return:
+    - metrics - metrics dictionary
+    """
     fig, axes = plt.subplots(2, 5, figsize=(25, 9))
     if num is not None:
         p_sq = real[..., 0] ** 2 + real[..., 1] ** 2 + real[..., 2] ** 2
@@ -110,6 +127,12 @@ def plot_kde(real, fake, dim_names, part_type, num=None, show_plots=True):
 
 
 def plot_scatter(real, fake):
+    """
+    Plotting particles points clouds 3D space of momenta components
+    Parameters:
+    - real - real momenta;
+    - fake - fake momenta
+    """
     fig = plt.figure(figsize=(12, 5))
     ax1 = fig.add_subplot(121, projection="3d")
     real_flat = real.reshape(-1, real.shape[-1])
@@ -158,6 +181,21 @@ def plot_vn(
     min_particles=15,
     n_interp=200,
 ):
+    """
+    Plotting vn(pt) and transverse momenta distibution
+    Parameters:
+    - real_data;
+    - fake_data;
+    - pt_min - minimal value of transverse momenta;
+    - pt_max - maximum value of transverse momenta;
+    - eta_max - maximum value of preusorapidity;
+    - nbins - number of vn(pt) bins in actual data;
+    - n - order of flow vn;
+    - min_particles - minimal count of particles for calculating mean and std;
+    - n_interp - number of interpolating points
+    Return:
+    - metrics - metrics dictionary
+    """
     metrics = {}
     fig, ax = plt.subplots(ncols=2, nrows=2, figsize=(16, 10))
     harmonics = [1, 2, 3]
@@ -263,6 +301,15 @@ def plot_vn(
 
 
 def plot_pt(real, fake, mode="pt"):
+    """
+    Plotting total transverse momenta and energy fractions by particle type
+    Parameters:
+    - real - real data;
+    - fake - fake data;
+    - mode - "pt" or "energy"
+    Return:
+    - mean value of MAE of fraction errors
+    """
     real_keys = [
         part_names[k] if k in part_names.keys() else str(k) for k in real.keys()
     ]

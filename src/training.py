@@ -10,6 +10,19 @@ from src.plots import plot_losses
 def compute_gradient_penalty(
     discriminator, real_data, fake_data, cond, labels, mask_real, mask_fake
 ):
+    """
+    Computing gradient penalty value for WGAN-GP training
+    Parameters:
+    - discriminator;
+    - real_data;
+    - fake_data;
+    - cond - input external condition tensor;
+    - labels - input labels tensor;
+    - mask_real - target padding mask;
+    - mask_fake - generated padding mask
+    Return:
+    - gp - gradient penalty value
+    """
     batch_size = real_data.size(0)
     epsilon = torch.rand(batch_size, 1, 1, device=real_data.device)
     interpolated = epsilon * real_data + (1 - epsilon) * fake_data
@@ -43,6 +56,20 @@ def wgan_gp_loss(
     mask_fake,
     lambda_gp=10,
 ):
+    """
+    Computing WGAN-GP loss
+    Parameters:
+    - d_real - discriminator output for real data;
+    - d_fake - discriminator output for fake data;
+    - real_data;
+    - fake_data;
+    - discriminator;
+    - cond - input external condition tensor;
+    - labels - input labels tensor;
+    - mask_real - target padding mask;
+    - mask_fake - generated padding mask;
+    - lambda_gp - gradient penalty weight
+    """
     gp = compute_gradient_penalty(
         discriminator, real_data, fake_data, cond, labels, mask_real, mask_fake
     )
@@ -52,6 +79,13 @@ def wgan_gp_loss(
 
 
 def update_average(model_tgt, model_src, beta):
+    """
+    EMA model updating
+    Parameters:
+    - model_tgt - target (shadow) model;
+    - model_src - source model;
+    - beta - EMA coefficient
+    """
     with torch.no_grad():
         params_src = dict(model_src.named_parameters())
         params_tgt = dict(model_tgt.named_parameters())
@@ -77,6 +111,26 @@ def train_epoch_transformer(
     G_shadow=None,
     ema_beta=0.5,
 ):
+    """
+    Epoch training function
+    Parameters:
+    - G - generator model;
+    - D - discriminator model;
+    - dataloader - train dataloader;
+    - optim_G - generator optimizer;
+    - optim_D - discriminator optimizer;
+    - device - "cuda" or "cpu";
+    - mode - "lsgan" or "wgan";
+    - d_iters - number of discriminator iterations per generator iteration;
+    - lambda_mask - mask BCE loss weight;
+    - lambda_len - mask length MSE loss weight;
+    - clip_val - value for gradient clipping;
+    - use_shadow - flag if EMA updating is used;
+    - G_shadow - shadow generator for EMA;
+    - ema_beta - EMA coefficient
+    Return:
+    - losses dictionary
+    """
     G.train()
     D.train()
     epoch_d_loss = 0.0
@@ -170,6 +224,38 @@ def train_model(
     model_name="best",
     **kwargs,
 ):
+    """
+    Overall training function
+    Parameters:
+    - G - generator model;
+    - D - discriminator model;
+    - dataloader - train dataloader;
+    - optim_G - generator optimizer;
+    - optim_D - discriminator optimizer;
+    - device - "cuda" or "cpu";
+    - mode - "lsgan" or "wgan";
+    - d_iters - number of discriminator iterations per generator iteration;
+    - epochs - number of epochs;
+    - train_epoch_func - epoch training fucntion;
+    - generate_func - generation function;
+    - test_mom - target momenta array;
+    - test_cond - input external conditon array;
+    - test_label - input label array;
+    - test_mask - true padding mask array;
+    - num_classes - number of particles types;
+    - meson_count_max - fixed size of target momenta tensors;
+    - scheduler_g - generator scheduler;
+    - scheduler_d - discriminator scheduler;
+    - use_shadow - flag if EMA updating is used;
+    - ema_beta - EMA coefficient;
+    - model_name - name of saving models state_dict();
+    - **kwargs - additional model-specific parameters
+    Return:
+    - losses - losses dictionary;
+    - G - trained generator;
+    - G_shadow - trained shadow generator;
+    - D - discriminator
+    """
     if use_shadow:
         G_shadow = copy.deepcopy(G).eval()
         update_average(G_shadow, G, beta=0.0)
@@ -276,6 +362,49 @@ def train_and_test(
     model_name="best",
     **kwargs,
 ):
+    """
+    Overall training function
+    Parameters:
+    - G - generator model;
+    - D - discriminator model;
+    - train_loader - train dataloader;
+    - optim_G - generator optimizer;
+    - optim_D - discriminator optimizer;
+    - device - "cuda" or "cpu";
+    - mode - "lsgan" or "wgan";
+    - d_iters - number of discriminator iterations per generator iteration;
+    - epochs - number of epochs;
+    - train_epoch_func - epoch training fucntion;
+    - generate_func - generation function;
+    - val_mom_obj - validation target momenta dictionary where keys are impact parameters;
+    - val_cond_obj - validation external condition dictionary where keys are impact parameters;
+    - val_label_obj - validation label dictionary where keys are impact parameters;
+    - val_mask_obj - validation target mask dictionary where keys are impact parameters;
+    - val_nucl_obj - validation nucleons momenta dictionary where keys are impact parameters;
+    - val_nucl_mask_obj - validation nucleons mask dictionary where keys are impact parameters;
+    - val_event_obj - validation events numbers dictionary where keys are impact parameters;
+    - test_mom_obj - test target momenta dictionary where keys are impact parameters;
+    - test_cond_obj - test external condition dictionary where keys are impact parameters;
+    - test_label_obj - test label dictionary where keys are impact parameters;
+    - test_mask_obj - test target mask dictionary where keys are impact parameters;
+    - test_nucl_obj - test nucleons momenta dictionary where keys are impact parameters;
+    - test_nucl_mask_obj - test nucleons mask dictionary where keys are impact parameters;
+    - test_event_obj - test events numbers dictionary where keys are impact parameters;
+    - num_classes - number of particles types;
+    - meson_count_max - fixed size of target momenta tensors;
+    - metrics_mode_name - name of metrics pool;
+    - seeds - list of random seeds;
+    - final_metrics - final metrics dictionary;
+    - scheduler_g - generator scheduler;
+    - scheduler_d - discriminator scheduler;
+    - use_shadow - flag if EMA updating is used;
+    - ema_beta - EMA coefficient;
+    - **kwargs - additional model-specific parameters
+    Return:
+    - G - trained generator;
+    - G_shadow - trained shadow generator;
+    - D - discriminator
+    """
     if metrics_mode_name not in final_metrics.keys():
         final_metrics[metrics_mode_name] = {}
     for seed in seeds:

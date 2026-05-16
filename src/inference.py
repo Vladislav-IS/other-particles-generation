@@ -6,6 +6,19 @@ from src.config import *
 
 
 def generate_transformer(G, batch_size, n_points, cond, labels, device, threshold=0.5):
+    """
+    Generating particles momenta for model inference
+    Parameters:
+    - G - generator model;
+    - batch_size;
+    - n_points - fixed size of momenta tensor;
+    - cond - input external condition tensor;
+    - labels - input labels tensor;
+    - device - "cuda" or "cpu";
+    - threshold - in order to get binary mask
+    Return:
+    - impulses - momenta tensor
+    """
     G.eval()
     cond = cond.to(device)
     labels = labels.to(device)
@@ -17,6 +30,13 @@ def generate_transformer(G, batch_size, n_points, cond, labels, device, threshol
 
 
 def count_pt(particles):
+    """
+    Getting fraction of total transverse momenta in events by particles type
+    Parameters:
+    - particles - dictionary where keys are particles types and values are momenergy tensors
+    Return:
+    - pt_parts - dictionary of fractions of total transverse momenta by particles type
+    """
     pt_parts = {}
     sum_pt = 0
     for k, v in particles.items():
@@ -28,6 +48,13 @@ def count_pt(particles):
 
 
 def count_e(particles):
+    """
+    Getting fraction of total energy in events by particles type
+    Parameters:
+    - particles - dictionary where keys are particles types and values are momenergy tensors
+    Return:
+    - e_parts - dictionary of fractions of total energy by particles type
+    """
     e_parts = {}
     sum_e = 0
     for k, v in particles.items():
@@ -39,6 +66,13 @@ def count_e(particles):
 
 
 def count_e_with_mass(particles):
+    """
+    Getting fraction of total energy in events by particles type using particles masses
+    Parameters:
+    - particles - dictionary where keys are particles types and values are momenergy tensors
+    Return:
+    - e_parts - dictionary of fractions of total energy by particles type
+    """
     e_parts = {}
     sum_e = 0
     for k, v in particles.items():
@@ -72,6 +106,21 @@ def get_dist_metrics(
     device,
     **kwargs
 ):
+    """
+    Calculating and plotting distibution metrics (KL, W1, W2)
+    Parameters:
+    - G - generator model;
+    - generate_func - function for generating momenta;
+    - n_points - fixed size of generated tensors;
+    - test_mom - target momenta array;
+    - test_cond - input external conditon array;
+    - test_label - input label array;
+    - test_mask - true padding mask array;
+    - device - "cuda" or "cpu";
+    - **kwargs - aditional parameters for genetaring
+    Return:
+    - metrics - metrics dictionary {"particle type": {"metric type": "value"}}
+    """
     metrics = {}
     for i in range(len(num_to_label)):
         metrics[num_to_label[i]] = {}
@@ -139,6 +188,24 @@ def get_energy_metrics(
     device,
     **kwargs
 ):
+    """
+    Calculating and plotting aggregated energy metrics (total transverse momenta and energy fractions)
+    Parameters:
+    - G - generator model;
+    - generate_func - function for generating momenta;
+    - n_points - fixed size of generated tensors;
+    - test_mom - target momenta array;
+    - test_nucl - nucleons momenta array;
+    - test_nucl_mask - nucleons mask array;
+    - test_event - events numbers array;
+    - test_cond - input external conditon array;
+    - test_label - input label array;
+    - test_mask - true padding mask array;
+    - device - "cuda" or "cpu";
+    - **kwargs - aditional parameters for genetaring
+    Return:
+    - metrics - metrics dictionary {"particle type": {"metric type": "value"}}
+    """
     all_real_pt = {}
     all_fake_pt = {}
     all_real_e = {}

@@ -15,4 +15,4 @@ part_names = {
     211: r"$\pi^+$",
     2112: r"$n$",
     2212: r"$p$",
-}
+}  # particles (pions and nucleons) displayed names
