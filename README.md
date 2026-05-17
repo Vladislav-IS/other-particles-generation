@@ -31,7 +31,7 @@ other-particles-generation/
 │   ├── B*                              # Веса модели, полученной в cond_experiment.ipynb, с прицельным параметром в качестве внешнего условия
 │   └── pion_gan*                       # Веса базовой модели Pion-GAN, полученные в models_experiment.ipynb
 ├── requirements.txt                    # Зависимости для src
-├── example.py                          # Пример обучения модели
+├── example.py                          # Пример обучения модели (для ускорения обучения требуется GPU)
 └── README.md                           # Описание проекта
 ```
 
